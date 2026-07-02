@@ -1,0 +1,21 @@
+# Unreal Engine generated
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/
+
+# IDE / project files (regenerated from .uproject)
+*.xcworkspace
+*.xcodeproj
+.vscode/
+.idea/
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+
+# macOS
+.DS_Store

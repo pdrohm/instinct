@@ -1,5 +1,22 @@
 # Implementation Log — The First Life
 
+## Session 2026-07-03 (E) — Autonomous dev loop, iter 5: lose-and-track spoor (commit `d84390d`)
+
+> The tracking half of the persistence hunt (Liebenberg, *The Art of Tracking*): when the quarry breaks line
+> of sight you follow the trail, and a cold trail loses the hunt. Built on the existing `UScentFieldSubsystem`
+> breadcrumb field, no new system, no research subagent (grounded inline; cost-conscious — session was already
+> high). The player body no longer lays trackable scent, so every fresh point is prey spoor;
+> `GetFreshestTrailNear(from, radius)` returns the freshest nearby scent as a follow-this direction + freshness
+> `[0..1]` or false when cold. HUD draws a HOT→COLD spoor arrow (projected onto the fixed iso screen via the
+> camera-yaw basis) only when the nearest live prey is beyond reveal distance — lose close contact and you
+> track; regain it and the cue hides. All first-pass numbers.
+>
+> **Loop checkpoint (5 iterations, all compile-green, NONE playtested):** core hunt loop → hunger → saiga
+> (2nd species) → catchable straggler → lose-and-track. This is a complete, winnable, tracked persistence-hunt
+> vertical slice. **The bottleneck is now unambiguously GATE-A (a human feel-pass), not more code** — every
+> committed number is a guess, and further breadth on an unvalidated foundation runs against the project's own
+> "validate before build" law. Recommend the owner play before the loop spends more.
+
 ## Session 2026-07-03 (E) — Autonomous dev loop, iter 4: the catchable straggler (commit `a56b361`)
 
 > The single most important addition to the loop: it makes H14 actually *winnable*. An identical herd

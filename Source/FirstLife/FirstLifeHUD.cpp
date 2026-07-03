@@ -4,6 +4,7 @@
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/Font.h"
+#include "HungerComponent.h"
 #include "HuntSubsystem.h"
 #include "LocomotionComponent.h"
 #include "SpeciesPerceptionComponent.h"
@@ -37,6 +38,17 @@ namespace
 	constexpr float BarHeight = 16.f;
 	constexpr float BarBottomMargin = 64.f;
 	constexpr float LowStaminaFraction = 0.3f;
+
+	// --- Hunger bar (H14): the survival meter, stacked directly above stamina, same
+	// width so the two reservoirs read as one column. Player body only — an AI never
+	// starves, so it never shows a hunger bar. ---
+	constexpr float HungerBarHeight = 10.f;
+	// Vertical gap from the top of the stamina bar up to the bottom of the hunger bar.
+	constexpr float HungerBarGap = 10.f;
+	// Warm amber when fed, shifting toward alarm-red as the gut empties — colour language,
+	// distinct from stamina's bone-white so the two meters never read as the same thing.
+	const FLinearColor HungerFullColor(0.95f, 0.62f, 0.12f);
+	const FLinearColor HungerEmptyColor(0.85f, 0.16f, 0.1f);
 
 	// --- Hunt readout layout (H14), top-center block ---
 	constexpr float HuntBlockTopMargin = 24.f;
@@ -90,6 +102,25 @@ void AFirstLifeHUD::DrawHUD()
 		Fill = FLinearColor(0.95f, 0.65f, 0.15f);
 	}
 	DrawRect(Fill, X, Y, BarWidth * Fraction, BarHeight);
+
+	// Hunger bar (H14): only the inhabited body carries survival pressure, so only draw it
+	// while the player holds this animal — a spectated AI never starves. Stacked above the
+	// stamina bar, sharing X and width; the fill lerps amber→red as the reservoir empties.
+	if (bInhabited)
+	{
+		if (const UHungerComponent* Hunger = Animal->GetHunger())
+		{
+			const float HungerFraction = Hunger->GetHungerFraction();
+			const float HungerY = Y - (HungerBarHeight + HungerBarGap);
+
+			DrawRect(FLinearColor(0.f, 0.f, 0.f, 0.55f),
+				X - 3.f, HungerY - 3.f, BarWidth + 6.f, HungerBarHeight + 6.f);
+
+			const FLinearColor HungerFill =
+				FMath::Lerp(HungerEmptyColor, HungerFullColor, HungerFraction);
+			DrawRect(HungerFill, X, HungerY, BarWidth * HungerFraction, HungerBarHeight);
+		}
+	}
 
 	UFont* Font = GEngine ? GEngine->GetSmallFont() : nullptr;
 	if (!bInhabited)

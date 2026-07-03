@@ -7,6 +7,7 @@
 
 class UAnimalConfig;
 class UCameraComponent;
+class UHungerComponent;
 class ULocomotionComponent;
 class USpeciesPerceptionComponent;
 class USpringArmComponent;
@@ -54,6 +55,8 @@ public:
 
 	UStaminaComponent* GetStamina() const { return Stamina; }
 
+	UHungerComponent* GetHunger() const { return Hunger; }
+
 	ULocomotionComponent* GetLocomotion() const { return Locomotion; }
 
 	USpeciesPerceptionComponent* GetPerception() const { return Perception; }
@@ -95,6 +98,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Agent")
 	TObjectPtr<UStaminaComponent> Stamina;
+
+	UPROPERTY(VisibleAnywhere, Category = "Agent")
+	TObjectPtr<UHungerComponent> Hunger;
 
 	UPROPERTY(VisibleAnywhere, Category = "Agent")
 	TObjectPtr<ULocomotionComponent> Locomotion;

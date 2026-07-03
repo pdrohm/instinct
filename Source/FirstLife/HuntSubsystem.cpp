@@ -2,9 +2,11 @@
 
 #include "AnimalAIController.h"
 #include "AnimalCharacter.h"
+#include "AnimalConfig.h"
 #include "EngineUtils.h"
 #include "FirstLife.h"
 #include "GameFramework/PlayerController.h"
+#include "HungerComponent.h"
 #include "StaminaComponent.h"
 
 namespace
@@ -127,6 +129,18 @@ void UHuntSubsystem::Tick(float DeltaTime)
 		if (UStaminaComponent* HunterStamina = Hunter->GetStamina())
 		{
 			HunterStamina->Refill();
+		}
+
+		// The feed itself: hunger climbs by the EATEN prey's NutritionValue — the payoff
+		// data lives on the prey, not here, so there is no hardcoded feed constant (ADR-E4).
+		// Guard both the prey's config and the hunter's stomach; the clamp inside Feed()
+		// is what discards the surplus of a kill far larger than one hunter's need.
+		if (UHungerComponent* HunterHunger = Hunter->GetHunger())
+		{
+			if (const UAnimalConfig* PreyConfig = CaughtPrey->GetConfig())
+			{
+				HunterHunger->Feed(PreyConfig->NutritionValue);
+			}
 		}
 
 		LastKillSeconds = HuntElapsedSeconds;

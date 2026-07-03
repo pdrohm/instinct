@@ -9,6 +9,7 @@
 #include "FirstLife.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "HungerComponent.h"
 #include "LocomotionComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "SpeciesPerceptionComponent.h"
@@ -62,6 +63,7 @@ AAnimalCharacter::AAnimalCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	Stamina = CreateDefaultSubobject<UStaminaComponent>(TEXT("Stamina"));
+	Hunger = CreateDefaultSubobject<UHungerComponent>(TEXT("Hunger"));
 	Locomotion = CreateDefaultSubobject<ULocomotionComponent>(TEXT("Locomotion"));
 	Perception = CreateDefaultSubobject<USpeciesPerceptionComponent>(TEXT("Perception"));
 
@@ -138,6 +140,7 @@ void AAnimalCharacter::BeginPlay()
 void AAnimalCharacter::ApplyConfig()
 {
 	Stamina->Configure(ResolvedConfig->MaxStamina, ResolvedConfig->ExhaustionRecoveryFraction);
+	Hunger->Configure(ResolvedConfig->MaxHunger, ResolvedConfig->HungerDrainPerSecond);
 	Locomotion->Configure(*ResolvedConfig);
 
 	// The species shapes its own grey-box body: the constructor's human cubes are
@@ -171,6 +174,23 @@ void AAnimalCharacter::ApplyConfig()
 void AAnimalCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// Metabolism + its coupling to stamina (H14). Hunger is the PLAYER's survival pressure,
+	// so it only ticks — and only presses on stamina — while a human inhabits this body.
+	// The instant it's AI-driven (released, or the whole reindeer herd) hunger freezes and
+	// the modifiers snap back to neutral, so no AI body is ever starvation-penalized.
+	if (Hunger && Stamina)
+	{
+		if (IsPlayerControlled())
+		{
+			Hunger->Update(DeltaTime);
+			Stamina->SetHungerModifiers(Hunger->GetStaminaCapMult(), Hunger->GetStaminaRegenMult());
+		}
+		else
+		{
+			Stamina->SetHungerModifiers(1.f, 1.f);
+		}
+	}
 
 	// Nothing to pose until BeginPlay has resolved the config and captured base offsets.
 	if (!ResolvedConfig || !BodyMesh || !HeadMesh)

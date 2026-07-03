@@ -39,6 +39,12 @@ UAnimalConfig* UAnimalConfig::CreateReindeerConfig(UObject* Outer)
 	Config->RestRegenPerSecond = 18.f;
 	Config->ExhaustionRecoveryFraction = 0.3f;
 
+	// Metabolism: the reindeer never gets hungry in play (only the player's body feels
+	// hunger — see AAnimalCharacter::Tick), so MaxHunger/drain are inert defaults here.
+	// What matters is NutritionValue: one caribou vastly exceeds one hunter's need, so a
+	// kill restores MOST of the bar (+85, first-pass) — clamped at the gut, surplus lost.
+	Config->NutritionValue = 85.f;
+
 	// Grey-box quadruped: a long horizontal torso at ~110 cm shoulder height with
 	// the head carried forward and high — at isometric distance the horizontal
 	// silhouette vs the human's vertical one is the entire species read. Capsule

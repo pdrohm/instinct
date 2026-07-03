@@ -88,6 +88,32 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stamina", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float ExhaustionRecoveryFraction = 0.3f;
 
+	// -- Metabolism (H14) ------------------------------------------------------
+	// A species' hunger is data, exactly like its locomotion (ADR-E4): the pawn class
+	// knows nothing, this asset says everything. Drives UHungerComponent — the survival
+	// pressure that gives the hunt a reason to exist. Class defaults describe the human.
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Metabolism", meta = (ClampMin = "1.0"))
+	float MaxHunger = 100.f;
+
+	/**
+	 * Hunger lost per second, wall-clock. First-pass 0.083/s empties a full bar in ~20 min
+	 * — the honest ordering of a real ~48 h glycogen-buffer→decline window, compressed
+	 * ~144× to a session-legible pace. Playtest-tune; not canon.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Metabolism", meta = (ClampMin = "0.0"))
+	float HungerDrainPerSecond = 0.083f;
+
+	/**
+	 * How much hunger THIS animal restores to whoever eats it. Nutrition lives on the
+	 * EATEN body, not the hunter: the feed amount a kill delivers is simply the prey's
+	 * NutritionValue, so there is no hardcoded feed constant anywhere in the hunt code
+	 * (data-driven, ADR-E4). Human = 0 — you do not eat yourself; the reindeer sets 85
+	 * in CreateReindeerConfig, enough that one kill tops off most of a hunter's bar.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Metabolism", meta = (ClampMin = "0.0"))
+	float NutritionValue = 0.f;
+
 	// -- Grey-box body ---------------------------------------------------------
 	// A species is also a silhouette (art direction: readability > realism). Until
 	// real meshes arrive (GATE-C), each species describes its own grey-box body:

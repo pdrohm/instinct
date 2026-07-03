@@ -2,6 +2,37 @@
 
 > One entry per loop. Format: task → hypotheses → change → checks → evidence → remaining.
 
+## 2026-07-03 — DECISION: First playable species pivots wolf → early Homo sapiens
+
+**Hypotheses:** strengthens H2 (endurance inversion makes the sprint-collapse impossible), adds H14
+(persistence-hunt pacing — new #1 risk), weakens H3's diagnostic power (caveat logged), gives H7 an
+unplanned early test (species swap should be config + mesh + tuning only).
+**Rationale (full version in `PROTOTYPE_SPEC.md`):** the stated reason ("human validates core systems
+better") was rejected — systems are species-agnostic. Accepted on four corrected grounds: (1) human can
+never out-sprint prey → the commit/abandon decision is load-bearing by construction; (2) the spec's chase
+mechanic was already persistence hunting; (3) humanoid is the cheapest believable body (retargeting +
+marketplace ecosystem); (4) endurance-running science (Bramble & Lieberman 2004) is peer-reviewed ground.
+**Docs updated:** VISION.md (roadmap stage 1, species examples, guardrail, success definition),
+PROTOTYPE_SPEC.md (rewritten for the human), HYPOTHESES.md (H2/H3/H7 updates + new H14),
+DESIGN_DECISIONS.md (D7/D9 consistency).
+**Scope unchanged:** no crafting/combat/tools/fire/inventory/progression/multiplayer. Prey herd unchanged.
+Environment/character art acquired only (Fab/Megascans/marketplace), timeboxed.
+**Remaining:** re-skin the slice-1 agent as human (config + mesh), retune stamina for endurance profile,
+add walk/run/sprint gaits, then resume build order at slice 2 (herd).
+
+## 2026-07-03 — Slice 1 re-cut as human: 3 gaits + endurance economy (H2, H7, H14 prep)
+
+- **Change:** `UAnimalConfig` human defaults (+RunSpeed 400, +RunRegen 0; sprint 620 @ 12/s drain);
+  `EStaminaActivity::Running` (neutral); `AAnimalCharacter` 3-gait resolution + upright grey-box
+  humanoid + `DA_Human` soft path; Walk input on LeftCtrl; script now creates `DA_Human`.
+- **Checks:** UBT compile `Succeeded` (Mac SDK 26.2, after Metal Toolchain install + Apple_SDK.json
+  MaxVersion override + Lumen→SSR fallback for the black-Lit-viewport bug). Map + `DA_Human`
+  verified via headless PythonScript commandlet (exit 0, asset on disk).
+- **Evidence for H7:** species swap took config defaults + one input action + placeholder proportions —
+  no core rewrite. The possession seam and stamina component were untouched.
+- **Remaining:** hands-on feel pass (tune `DA_Human`), acquire marketplace/mannequin humanoid
+  (binary assets — GUI work, see `IMPLEMENTATION_LOG.md`), then slice 2 (living herd).
+
 ## 2026-07-02 — Slice 1: Wolf + Stamina (PROTOTYPE_SPEC build order step 1)
 
 **Environment fact:** UE 5.6 not installed on the dev machine at authoring time; Xcode 26.2 present.

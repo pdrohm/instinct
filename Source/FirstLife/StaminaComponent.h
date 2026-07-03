@@ -12,7 +12,10 @@ UENUM()
 enum class EStaminaActivity : uint8
 {
 	Resting,
+	/** Walking pace — slow enough to recover while moving. */
 	Moving,
+	/** Sustainable run — the endurance gait; costs nothing, regains ~nothing. */
+	Running,
 	Sprinting
 };
 
@@ -56,9 +59,10 @@ public:
 private:
 	// Tuning, sourced from UAnimalConfig via Configure().
 	float Max = 100.f;
-	float SprintDrainPerSecond = 20.f;
-	float WalkRegenPerSecond = 8.f;
-	float RestRegenPerSecond = 25.f;
+	float SprintDrainPerSecond = 12.f;
+	float RunRegenPerSecond = 0.f;
+	float WalkRegenPerSecond = 10.f;
+	float RestRegenPerSecond = 22.f;
 	float ExhaustionRecoveryFraction = 0.3f;
 
 	// State.

@@ -1,15 +1,15 @@
-"""Builds the Slice 1 grey-box map and the wolf's data asset.
+"""Builds the Slice 1 grey-box map and the playable species' data asset.
 
 Run inside UnrealEditor: Tools > Execute Python Script (or `py` console command).
 Idempotent: skips anything that already exists. Produces:
-  /Game/Maps/GreyBox   - floor, boundary walls, LOS blockers, PlayerStart, lights
-  /Game/Agents/DA_Wolf - UAnimalConfig instance (edit this to tune feel, no recompile)
+  /Game/Maps/GreyBox    - floor, boundary walls, LOS blockers, PlayerStart, lights
+  /Game/Agents/DA_Human - UAnimalConfig instance (edit this to tune feel, no recompile)
 """
 
 import unreal
 
 LEVEL_PATH = "/Game/Maps/GreyBox"
-WOLF_CONFIG_PATH = "/Game/Agents/DA_Wolf"
+HUMAN_CONFIG_PATH = "/Game/Agents/DA_Human"
 CUBE_MESH_PATH = "/Engine/BasicShapes/Cube.Cube"
 
 # Map is 100m x 100m; the cube primitive is 100uu (1m) per side before scaling.
@@ -60,6 +60,10 @@ def build_map():
         unreal.DirectionalLight, unreal.Vector(0, 0, 2000), unreal.Rotator(-50.0, 30.0, 0.0))
     sun.set_actor_label("Sun")
     sun.root_component.set_editor_property("mobility", unreal.ComponentMobility.MOVABLE)
+    # Drive the SkyAtmosphere (else the sky renders black and the real-time SkyLight,
+    # capturing that black sky, provides no ambient fill — the whole scene goes dark in Lit).
+    sun.light_component.set_editor_property("atmosphere_sun_light", True)
+    sun.light_component.set_editor_property("intensity", 10.0)
 
     sky_light = actors.spawn_actor_from_class(
         unreal.SkyLight, unreal.Vector(0, 0, 2000), unreal.Rotator(0.0, 0.0, 0.0))
@@ -75,18 +79,19 @@ def build_map():
     unreal.log("GreyBox map created and saved.")
 
 
-def build_wolf_config():
-    if unreal.EditorAssetLibrary.does_asset_exist(WOLF_CONFIG_PATH):
-        unreal.log("DA_Wolf already exists - leaving your tuning untouched.")
+def build_human_config():
+    if unreal.EditorAssetLibrary.does_asset_exist(HUMAN_CONFIG_PATH):
+        unreal.log("DA_Human already exists - leaving your tuning untouched.")
         return
 
     factory = unreal.DataAssetFactory()
     factory.set_editor_property("data_asset_class", unreal.AnimalConfig.static_class())
     asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
-    asset_tools.create_asset("DA_Wolf", "/Game/Agents", unreal.AnimalConfig.static_class(), factory)
-    unreal.EditorAssetLibrary.save_asset(WOLF_CONFIG_PATH)
-    unreal.log("DA_Wolf created with class-default tuning. Edit it to iterate on feel.")
+    asset_tools.create_asset("DA_Human", "/Game/Agents", unreal.AnimalConfig.static_class(), factory)
+    unreal.EditorAssetLibrary.save_asset(HUMAN_CONFIG_PATH)
+    unreal.log("DA_Human created with class-default tuning (early Homo sapiens endurance profile). "
+               "Edit it to iterate on feel.")
 
 
 build_map()
-build_wolf_config()
+build_human_config()

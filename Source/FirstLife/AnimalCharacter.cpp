@@ -22,7 +22,8 @@ AAnimalCharacter::AAnimalCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	GetCapsuleComponent()->InitCapsuleSize(40.f, 50.f);
+	// Humanoid proportions: ~180cm standing figure.
+	GetCapsuleComponent()->InitCapsuleSize(34.f, 90.f);
 
 	// The body faces where it runs; the camera is free to look around it.
 	bUseControllerRotationPitch = false;
@@ -33,20 +34,22 @@ AAnimalCharacter::AAnimalCharacter()
 
 	Stamina = CreateDefaultSubobject<UStaminaComponent>(TEXT("Stamina"));
 
-	// Grey-box wolf: an elongated body box and a head box, from engine content only.
+	// Grey-box early human: an upright torso box and a head box, from engine content
+	// only. Placeholder until a marketplace/Fab humanoid is brought in (spec: art is
+	// acquired, never modeled).
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMesh(TEXT("/Engine/BasicShapes/Cube.Cube"));
 
 	BodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
 	BodyMesh->SetupAttachment(GetCapsuleComponent());
 	BodyMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	BodyMesh->SetRelativeLocation(FVector(0.f, 0.f, -20.f));
-	BodyMesh->SetRelativeScale3D(FVector(1.1f, 0.45f, 0.45f));
+	BodyMesh->SetRelativeLocation(FVector(0.f, 0.f, -14.f));
+	BodyMesh->SetRelativeScale3D(FVector(0.38f, 0.5f, 1.44f));
 
 	HeadMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HeadMesh"));
 	HeadMesh->SetupAttachment(GetCapsuleComponent());
 	HeadMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	HeadMesh->SetRelativeLocation(FVector(65.f, 0.f, 5.f));
-	HeadMesh->SetRelativeScale3D(FVector(0.35f, 0.3f, 0.3f));
+	HeadMesh->SetRelativeLocation(FVector(4.f, 0.f, 74.f));
+	HeadMesh->SetRelativeScale3D(FVector(0.24f, 0.24f, 0.26f));
 
 	if (CubeMesh.Succeeded())
 	{
@@ -69,7 +72,7 @@ AAnimalCharacter::AAnimalCharacter()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorld;
 
 	ConfigAsset = TSoftObjectPtr<UAnimalConfig>(
-		FSoftObjectPath(TEXT("/Game/Agents/DA_Wolf.DA_Wolf")));
+		FSoftObjectPath(TEXT("/Game/Agents/DA_Human.DA_Human")));
 }
 
 void AAnimalCharacter::BeginPlay()
@@ -89,13 +92,19 @@ void AAnimalCharacter::BeginPlay()
 
 void AAnimalCharacter::ApplyConfig()
 {
-	GetCharacterMovement()->MaxWalkSpeed = ResolvedConfig->WalkSpeed;
+	// Default gait is the sustainable run; walk and sprint are deliberate choices.
+	GetCharacterMovement()->MaxWalkSpeed = ResolvedConfig->RunSpeed;
 	Stamina->Configure(*ResolvedConfig);
 }
 
 void AAnimalCharacter::SetWantsToSprint(bool bInWantsToSprint)
 {
 	bWantsToSprint = bInWantsToSprint;
+}
+
+void AAnimalCharacter::SetWantsToWalk(bool bInWantsToWalk)
+{
+	bWantsToWalk = bInWantsToWalk;
 }
 
 void AAnimalCharacter::Tick(float DeltaTime)
@@ -112,17 +121,33 @@ void AAnimalCharacter::Tick(float DeltaTime)
 	EStaminaActivity Activity = EStaminaActivity::Resting;
 	if (GroundSpeed > RestSpeedThreshold)
 	{
-		Activity = bSprintActive ? EStaminaActivity::Sprinting : EStaminaActivity::Moving;
+		if (bSprintActive)
+		{
+			Activity = EStaminaActivity::Sprinting;
+		}
+		else
+		{
+			Activity = bWantsToWalk ? EStaminaActivity::Moving : EStaminaActivity::Running;
+		}
 	}
 	Stamina->Update(Activity, DeltaTime);
 
 	// ...then re-gate: sprint is a continuous negotiation with stamina, not a latch.
 	// The moment the body is exhausted the sprint dies mid-stride, whoever drives (H2).
-	const bool bShouldSprint = bWantsToSprint && Stamina->CanSprint();
-	if (bShouldSprint != bSprintActive)
+	bSprintActive = bWantsToSprint && Stamina->CanSprint();
+
+	// Resolve the gait: sprint > walk > run (the human's default, sustainable pace).
+	float DesiredSpeed = ResolvedConfig->RunSpeed;
+	if (bSprintActive)
 	{
-		bSprintActive = bShouldSprint;
-		GetCharacterMovement()->MaxWalkSpeed =
-			bSprintActive ? ResolvedConfig->SprintSpeed : ResolvedConfig->WalkSpeed;
+		DesiredSpeed = ResolvedConfig->SprintSpeed;
+	}
+	else if (bWantsToWalk)
+	{
+		DesiredSpeed = ResolvedConfig->WalkSpeed;
+	}
+	if (GetCharacterMovement()->MaxWalkSpeed != DesiredSpeed)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = DesiredSpeed;
 	}
 }

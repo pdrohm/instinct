@@ -9,7 +9,7 @@ Inhabit another species inside a scientifically grounded prehistoric ecosystem �
 
 ## The fantasy
 
-You are not controlling a character. You are *inhabiting* another form of life. You see the world through its senses, move with its body, and are bound by its instincts, strengths, and weaknesses. A wolf reads the wind and its packmates. A horse lives on awareness and the herd's collective nerve. A mammoth trusts its size and the road its family has always walked. You do not play the animal — for a while, you *are* one.
+You are not controlling a character. You are *inhabiting* another form of life. You see the world through its senses, move with its body, and are bound by its instincts, strengths, and weaknesses. A wolf reads the wind and its packmates. A horse lives on awareness and the herd's collective nerve. A mammoth trusts its size and the road its family has always walked. An early human has neither speed nor claws — only sweat, patience, and the ability to keep going long after everything else has to stop. You do not play the animal — for a while, you *are* one.
 
 The world does not revolve around you. Herds migrate, predators compete, seasons turn, and you are one life inside a living system that would carry on without you. Your story is whatever survival makes it.
 
@@ -26,7 +26,7 @@ Done right, this means **every future species should feel like an entirely diffe
 - The wolf is a game about smell, pack, and the economics of the chase.
 - The horse is a game about vigilance, the safety of the herd, and knowing when to run.
 - The mammoth is a game about migration, memory, and protecting your family.
-- The human is a game about planning, cooperation, and tools.
+- The human is a game about endurance and reading the land — and, much later, about planning, cooperation, and tools.
 
 Same world. Same rules of hunger, energy, cold, fear, and death. Radically different experience — because the *body and instincts you inhabit* change what that world demands of you. That is the long-term identity of the project, and it is why the ecosystem, not any one animal, is the thing we invest in.
 
@@ -47,7 +47,7 @@ Illustrative examples (directions, **not** a design commitment — we do not des
 - **Herbivores (small/fast)** rely on awareness, distance, and the collective nerve of the herd.
 - **Large herbivores** rely on size, migration routes, and protecting the young.
 - **Predators generally** rely on timing, ambush, and energy efficiency over raw speed.
-- **Humans** rely on planning, cooperation, and tools.
+- **Humans** rely first on the body's one superpower — endurance — and only later on planning, cooperation, and tools.
 
 These are perspectives to *discover through play*, one at a time, long after the core simulation is proven. Listing them here is about direction and identity — not a to-do list.
 
@@ -81,7 +81,7 @@ The hunt is only *one expression* of this loop — the predator's. A prey animal
 ## What this is NOT (scope guardrails)
 
 - Not a hunting game. Hunting is one species' expression of a universal survival loop.
-- Not a human-survival-crafting game. No base building, tech trees, or inventory-as-gameplay.
+- Not a human-survival-crafting game. No base building, tech trees, or inventory-as-gameplay. A playable human does not change this: the prototype human has no tools, no fire, no crafting — a human body under animal rules. Tools/cooperation are the human lens's *future* identity, earned like any other system.
 - Not "many species" soon. One playable animal first; every other perspective is earned, post-validation.
 - Not a persistent MMO. Multiplayer is a property of the architecture, not a destination on the roadmap.
 - Not photoreal AAA. Art is bought or stylized. Solo time goes into simulation and AI — the part nobody can buy.
@@ -90,7 +90,7 @@ The hunt is only *one expression* of this loop — the predator's. A prey animal
 
 The roadmap validates *gameplay*, in order, before it validates *scale*. Each stage is gated on the previous one being fun. We do not skip ahead.
 
-1. **Prototype** — inhabit one wolf in a living herd-based ecosystem; validate that simple survival systems (hunger, stamina, awareness) are inherently engaging. *This is the core bet.* (See `PROTOTYPE_SPEC.md`.)
+1. **Prototype** — inhabit one early *Homo sapiens*, played strictly as an animal (no tools, no crafting), in a living herd-based ecosystem; validate that simple survival systems (hunger, stamina, awareness) are inherently engaging. *This is the core bet.* (First playable pivoted from wolf to human — rationale in `PROTOTYPE_SPEC.md`.)
 2. **The ecosystem breathes** — scent/tracking, day-night + Ice Age cold, a rival predator that competes with and threatens you. The world starts generating stories on its own.
 3. **The life, not the moment** — reproduction, social bonds, a season/lifespan arc so "your story" has a beginning and end.
 4. **A second perspective** — make one existing AI animal (e.g. the prey species) playable, and confirm the payoff thesis: *inhabiting a different body feels like a different game.* This is where the real vision proves itself.
@@ -109,4 +109,4 @@ The roadmap validates *gameplay*, in order, before it validates *scale*. Each st
 
 ## Success definition for the concept
 
-We consider the *vision* validated — not the game finished — when a naive tester, inhabiting the grey-box wolf for ten minutes, produces an unscripted survival story they care about, driven purely by simple systems rather than scripted content. That result is the green light for everything above, because it proves the one thing the whole project rests on: that *living inside this simulation is engaging on its own*. Everything past that is production. Everything before it is the only thing that matters.
+We consider the *vision* validated — not the game finished — when a naive tester, inhabiting the grey-box early human for ten minutes, produces an unscripted survival story they care about, driven purely by simple systems rather than scripted content. That result is the green light for everything above, because it proves the one thing the whole project rests on: that *living inside this simulation is engaging on its own*. Everything past that is production. Everything before it is the only thing that matters.

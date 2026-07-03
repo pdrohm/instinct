@@ -55,7 +55,7 @@ Format:
 ### D7 — Possession architecture: the player is a possessed AI agent
 
 **Why:** Making the player just another animal-agent (whose decisions are handed to a human) is what turns "inhabit any species" and "multiplayer" into future features rather than rewrites. It is the single technical decision that keeps the whole long-term vision reachable.
-**Tradeoff accepted:** Some up-front architectural discipline in the prototype for a payoff that only fully materializes later. We build the general case (any agent playable) while exposing the specific case (one wolf).
+**Tradeoff accepted:** Some up-front architectural discipline in the prototype for a payoff that only fully materializes later. We build the general case (any agent playable) while exposing the specific case (one playable species — initially the wolf, pivoted to the early human on 2026-07-03; see `PROTOTYPE_SPEC.md`).
 **Status:** Firm.
 
 ### D8 — Multiplayer is a consequence of the architecture, not a roadmap milestone
@@ -66,7 +66,7 @@ Format:
 
 ### D9 — One playable species first; more are earned, not planned
 
-**Why:** Proving the core with the cheapest, most legible animal (the wolf) de-risks everything. Every additional species is a post-validation feature, gated on the previous one being genuinely fun.
+**Why:** Proving the core with the cheapest believable body de-risks everything. (Originally the wolf; revised 2026-07-03 to the early human — the humanoid asset ecosystem makes it the cheapest believable body, and its endurance-hunting profile makes the stamina decision structurally robust. Rationale in `PROTOTYPE_SPEC.md`.) Every additional species is a post-validation feature, gated on the previous one being genuinely fun.
 **Tradeoff accepted:** The most exciting part of the pitch ("be any animal") is deferred the longest. We resist our own most marketable idea to protect scope.
 **Status:** Firm.
 

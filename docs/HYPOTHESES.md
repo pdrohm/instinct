@@ -44,7 +44,7 @@ These are the bets "The First Life" is built to test. If we are spending prototy
 **Confidence:** Medium.
 **Validation:** Observe whether players deliberate before acting, sometimes *choose not to* chase, and can articulate the tradeoff afterward.
 **Success looks like:** Players refrain from a bad chase and feel good about it ("restraint as mastery," `PLAYER_EXPERIENCE.md`).
-**Risks:** Tuning makes the optimal play obvious, collapsing the decision. This is inseparable from chase/energy tuning being finicky.
+**Risks:** Tuning makes the optimal play obvious, collapsing the decision. This is inseparable from chase/energy tuning being finicky. *Update (2026-07-03 human pivot):* the endurance inversion — prey always out-sprint you; you win only by out-lasting — makes the "just sprint" collapse structurally impossible, which strengthens this test. The risk moves to pacing instead (see H14).
 **Status:** Open.
 **Prototype coverage:** Yes.
 
@@ -53,9 +53,9 @@ These are the bets "The First Life" is built to test. If we are spending prototy
 **Question:** Does the prototype produce presence — the feeling of inhabiting a body — rather than the feeling of steering an avatar?
 **Why it matters:** Presence is the #1 emotion in `GAME_DNA.md`. It's the difference between this game and a generic third-person creature game.
 **Confidence:** Low. This is subtle, easy to miss, and hard to force with grey boxes.
-**Validation:** Listen to *how* players narrate their session — the language of embodiment ("I was exhausted," "I was hungry") vs. the language of operation ("I moved it," "the unit").
-**Success looks like:** Spontaneous first-person, embodied language about the animal's state.
-**Risks:** Grey-box fidelity may suppress presence unfairly, giving a false negative. We may need minimal readability polish before this is testable — but must not let that balloon the prototype.
+**Validation:** Listen to *how* players narrate their session. *Redefined for the human pivot (2026-07-03):* embodied first-person language ("I was exhausted") is *default* for human avatars and no longer discriminates. The signal is now **animal-among-animals framing** — vulnerability, non-centrality, body limits ("they're faster than me — I can't win this," "I'm just another animal out here") vs. protagonist framing ("where's my weapon," "what's my objective").
+**Success looks like:** Players spontaneously describe themselves as one vulnerable animal in an indifferent world, bound by a body — not as the hero of the scene.
+**Risks:** Grey-box fidelity may suppress presence unfairly, giving a false negative. *Added by the pivot:* a human avatar weakens this hypothesis's diagnostic power overall — the deeper "inhabit another species" estrangement is only truly testable at roadmap stage 4 (second, non-human perspective). Interpret prototype presence signals with that caveat.
 **Status:** Open.
 **Prototype coverage:** Partial — testable in principle, but presence may be under-served by prototype fidelity. Interpret a weak signal with caution, not as a verdict.
 
@@ -81,6 +81,17 @@ These are the bets "The First Life" is built to test. If we are spending prototy
 **Status:** Open.
 **Prototype coverage:** Yes.
 
+### H14 — A persistence hunt compressed to minutes is tension, not tedium
+
+**Question:** Real persistence hunting plays out over hours. The prototype must compress "you can't out-sprint them, only out-last them" into a ~2–6 minute pursuit. Does that read as mounting pressure — or as jogging behind a deer?
+**Why it matters:** This is the human pivot's biggest new risk (introduced 2026-07-03). The wolf's burst-chase was naturally minutes-scale; the human's attrition-chase is not. If compression fails, we either bend biology deliberately (pillar 5 — flag it) or the human-first bet weakens and we revisit it.
+**Confidence:** Low. No evidence either way; slow-burn tension in a minutes-long loop is a real design unknown.
+**Validation:** Chase-tuning sessions during build-order step 4, then naive testers. Watch for *mid-chase decisions* — cutting a corner, choosing to push, choosing to give up — versus passive following.
+**Success looks like:** Testers describe a long pursuit as tense ("I almost gave up, then it stumbled"); abandoning a chase feels like a *decision with a cost*, not relief from boredom.
+**Risks:** Bad tuning produces tedium and we misread it as the concept failing (false negative). Or we over-compress until it is a wolf chase wearing a human mesh — silently un-testing the hypothesis while appearing to pass it.
+**Status:** Open.
+**Prototype coverage:** Yes — this is now a core prototype question, tested at build-order step 4.
+
 ---
 
 ## Tier 2 — Hypotheses the current prototype canNOT answer (deferred, do not build for these yet)
@@ -103,11 +114,11 @@ These matter enormously but require systems, species, or scale the prototype del
 **Question:** Does building the player as a possessed AI agent genuinely make the *second* species cheap (input/camera/tuning) rather than a rewrite?
 **Why it matters:** The central technical bet (`DESIGN_DECISIONS.md` D7). The entire "many perspectives" future depends on it being true.
 **Confidence:** Medium. Architecturally sound in theory; unproven in practice until we do it twice.
-**Validation:** The prototype builds the possession seam (togglable AI/player wolf) now, but the hypothesis is only *proven* when we make a second, different species playable with low effort.
+**Validation:** The prototype builds the possession seam (togglable AI/player agent — built first on the wolf) now, but the hypothesis is only *proven* when we make a second, different species playable with low effort. *Early signal (2026-07-03):* the wolf→human pivot is an unplanned live test — if the swap lands as mesh + config + tuning with no core rewrite, confidence here rises before stage 4 even starts.
 **Success looks like:** Second playable species reuses the agent foundation with mostly data + input work, no core rewrite.
 **Risks:** Hidden coupling surfaces only at the second species; the abstraction leaks and we pay the rewrite we tried to avoid.
 **Status:** Open.
-**Prototype coverage:** Partial — the prototype builds and validates the *seam* (can we toggle the wolf between AI and player?), but not the full claim, which needs species #2.
+**Prototype coverage:** Partial — the prototype builds and validates the *seam* (can we toggle the agent between AI and player?), but not the full claim, which needs species #2.
 
 ### H8 — Every species should perceive the world differently — and it's worth the cost
 

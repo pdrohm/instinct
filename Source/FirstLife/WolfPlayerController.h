@@ -11,9 +11,13 @@ class UInputMappingContext;
 struct FInputActionValue;
 
 /**
- * The possession layer (H7): a human handing inputs to an ordinary animal agent.
- * P toggles between inhabiting the wolf and returning it to its own AI brain,
+ * The possession layer (H7): a player handing inputs to an ordinary animal agent —
+ * currently the early human, previously the wolf; the seam does not care.
+ * P toggles between inhabiting the agent and returning it to its own AI brain,
  * proving the seam the whole architecture rests on.
+ *
+ * Class keeps its original name to avoid churn ("do not restructure"); rename to
+ * APossessionPlayerController is queued for a natural refactor window.
  *
  * All input objects are constructed in code so the slice needs zero binary assets.
  */
@@ -34,6 +38,8 @@ private:
 	void HandleLook(const FInputActionValue& Value);
 	void HandleSprintStarted(const FInputActionValue& Value);
 	void HandleSprintCompleted(const FInputActionValue& Value);
+	void HandleWalkStarted(const FInputActionValue& Value);
+	void HandleWalkCompleted(const FInputActionValue& Value);
 	void HandleTogglePossession(const FInputActionValue& Value);
 
 	UPROPERTY()
@@ -47,6 +53,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UInputAction> SprintAction;
+
+	UPROPERTY()
+	TObjectPtr<UInputAction> WalkAction;
 
 	UPROPERTY()
 	TObjectPtr<UInputAction> ToggleAction;

@@ -6,6 +6,7 @@ void UStaminaComponent::Configure(const UAnimalConfig& Config)
 {
 	Max = Config.MaxStamina;
 	SprintDrainPerSecond = Config.SprintDrainPerSecond;
+	RunRegenPerSecond = Config.RunRegenPerSecond;
 	WalkRegenPerSecond = Config.WalkRegenPerSecond;
 	RestRegenPerSecond = Config.RestRegenPerSecond;
 	ExhaustionRecoveryFraction = Config.ExhaustionRecoveryFraction;
@@ -23,6 +24,9 @@ void UStaminaComponent::Update(EStaminaActivity Activity, float DeltaSeconds)
 		break;
 	case EStaminaActivity::Moving:
 		Current += WalkRegenPerSecond * DeltaSeconds;
+		break;
+	case EStaminaActivity::Running:
+		Current += RunRegenPerSecond * DeltaSeconds;
 		break;
 	case EStaminaActivity::Resting:
 		Current += RestRegenPerSecond * DeltaSeconds;

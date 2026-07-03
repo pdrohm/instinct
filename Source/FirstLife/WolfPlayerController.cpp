@@ -35,6 +35,8 @@ void AWolfPlayerController::SetupInputComponent()
 	Input->BindAction(LookAction, ETriggerEvent::Triggered, this, &AWolfPlayerController::HandleLook);
 	Input->BindAction(SprintAction, ETriggerEvent::Started, this, &AWolfPlayerController::HandleSprintStarted);
 	Input->BindAction(SprintAction, ETriggerEvent::Completed, this, &AWolfPlayerController::HandleSprintCompleted);
+	Input->BindAction(WalkAction, ETriggerEvent::Started, this, &AWolfPlayerController::HandleWalkStarted);
+	Input->BindAction(WalkAction, ETriggerEvent::Completed, this, &AWolfPlayerController::HandleWalkCompleted);
 	Input->BindAction(ToggleAction, ETriggerEvent::Started, this, &AWolfPlayerController::HandleTogglePossession);
 }
 
@@ -49,6 +51,7 @@ void AWolfPlayerController::BuildInputObjects()
 	LookAction->ValueType = EInputActionValueType::Axis2D;
 
 	SprintAction = NewObject<UInputAction>(this, TEXT("IA_Sprint"));
+	WalkAction = NewObject<UInputAction>(this, TEXT("IA_Walk"));
 	ToggleAction = NewObject<UInputAction>(this, TEXT("IA_TogglePossession"));
 
 	// Move: X = right, Y = forward. Swizzle lifts a key's value into Y (forward axis).
@@ -77,6 +80,7 @@ void AWolfPlayerController::BuildInputObjects()
 	LookMapping.Modifiers.Add(NegateY);
 
 	MappingContext->MapKey(SprintAction, EKeys::LeftShift);
+	MappingContext->MapKey(WalkAction, EKeys::LeftControl);
 	MappingContext->MapKey(ToggleAction, EKeys::P);
 }
 
@@ -122,6 +126,22 @@ void AWolfPlayerController::HandleSprintCompleted(const FInputActionValue& Value
 	if (AAnimalCharacter* Animal = GetInhabitedAnimal())
 	{
 		Animal->SetWantsToSprint(false);
+	}
+}
+
+void AWolfPlayerController::HandleWalkStarted(const FInputActionValue& Value)
+{
+	if (AAnimalCharacter* Animal = GetInhabitedAnimal())
+	{
+		Animal->SetWantsToWalk(true);
+	}
+}
+
+void AWolfPlayerController::HandleWalkCompleted(const FInputActionValue& Value)
+{
+	if (AAnimalCharacter* Animal = GetInhabitedAnimal())
+	{
+		Animal->SetWantsToWalk(false);
 	}
 }
 

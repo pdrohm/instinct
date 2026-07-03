@@ -12,9 +12,9 @@ class UStaminaComponent;
 class UStaticMeshComponent;
 
 /**
- * A generic animal agent — the wolf is just this body with a wolf config (H7).
- * AI drives it by default; player control is a possession layer on top.
- * Nothing in here knows or cares whether the controller is human.
+ * A generic animal agent — the playable early human is just this body with a human
+ * config, exactly as the wolf was before it (H7). AI drives it by default; player
+ * control is a possession layer on top. Nothing in here knows who the controller is.
  */
 UCLASS()
 class FIRSTLIFE_API AAnimalCharacter : public ACharacter
@@ -26,6 +26,9 @@ public:
 
 	/** Intent, not state: sprint only actually happens while stamina allows (H2). */
 	void SetWantsToSprint(bool bInWantsToSprint);
+
+	/** Walk is the slow recover/stalk gait; default gait (neither walk nor sprint) is the run. */
+	void SetWantsToWalk(bool bInWantsToWalk);
 
 	bool IsSprinting() const { return bSprintActive; }
 
@@ -39,7 +42,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	/**
-	 * Species definition. Defaults to /Game/Agents/DA_Wolf; when the asset does not
+	 * Species definition. Defaults to /Game/Agents/DA_Human; when the asset does not
 	 * exist yet, falls back to UAnimalConfig class defaults so the slice runs with
 	 * zero binary assets.
 	 */
@@ -68,5 +71,6 @@ private:
 	TObjectPtr<const UAnimalConfig> ResolvedConfig;
 
 	bool bWantsToSprint = false;
+	bool bWantsToWalk = false;
 	bool bSprintActive = false;
 };

@@ -53,18 +53,54 @@ const FGaitSettings& ULocomotionComponent::GetGaitSettings(ELocomotionGait Gait)
 
 ELocomotionGait ULocomotionComponent::ResolveGait() const
 {
+	// First, what the body is being asked for.
+	ELocomotionGait Desired;
 	// Sprint is a continuous negotiation with stamina, not a latch: the moment
 	// the body is exhausted the sprint dies mid-stride, whoever drives (H2).
 	if (bWantsToSprint && Stamina->CanSprint())
 	{
-		return ELocomotionGait::Sprint;
+		Desired = ELocomotionGait::Sprint;
 	}
-	if (bWantsToWalk)
+	else if (bWantsToWalk)
 	{
-		return ELocomotionGait::Walk;
+		Desired = ELocomotionGait::Walk;
 	}
-	// No intent: the species settles into its own biomechanics (human = jog).
-	return Config->PreferredGait;
+	else
+	{
+		// No intent: the species settles into its own biomechanics (human = jog).
+		Desired = Config->PreferredGait;
+	}
+
+	// Body-truth overrides intent: a blown animal cannot sustain a draining gait.
+	// This is what makes endurance a *species identity*, not a number — a human's
+	// jog regenerates, so exhaustion never locks it out of travelling; a deer's jog
+	// drains, so a blown deer is forced down to its only sustainable gait (the walk)
+	// and the persistence hunter closes in. The whole persistence hunt lives here (H14).
+	if (Stamina->IsExhausted() && GetGaitSettings(Desired).StaminaDeltaPerSecond < 0.f)
+	{
+		return FastestSustainableGait();
+	}
+	return Desired;
+}
+
+ELocomotionGait ULocomotionComponent::FastestSustainableGait() const
+{
+	// The fastest gait that does not drain (delta >= 0). Every species has at least
+	// one — the recovery walk — so this always resolves; for a human the jog also
+	// qualifies (endurance embodied), for a deer only the walk does.
+	ELocomotionGait Best = ELocomotionGait::Walk;
+	float BestSpeed = -1.f;
+	for (const ELocomotionGait Gait :
+		{ ELocomotionGait::Walk, ELocomotionGait::Jog, ELocomotionGait::Sprint })
+	{
+		const FGaitSettings& Settings = GetGaitSettings(Gait);
+		if (Settings.StaminaDeltaPerSecond >= 0.f && Settings.MaxSpeed > BestSpeed)
+		{
+			BestSpeed = Settings.MaxSpeed;
+			Best = Gait;
+		}
+	}
+	return Best;
 }
 
 void ULocomotionComponent::ApplyGaitToBody(const FGaitSettings& Gait)

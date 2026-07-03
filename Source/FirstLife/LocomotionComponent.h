@@ -59,6 +59,8 @@ public:
 private:
 	const FGaitSettings& GetGaitSettings(ELocomotionGait Gait) const;
 	ELocomotionGait ResolveGait() const;
+	/** The fastest gait that does not drain stamina (delta >= 0) — a body's sustainable ceiling when blown. */
+	ELocomotionGait FastestSustainableGait() const;
 	void ApplyGaitToBody(const FGaitSettings& Gait);
 
 	UPROPERTY(Transient)

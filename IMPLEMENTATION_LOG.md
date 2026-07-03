@@ -1,5 +1,19 @@
 # Implementation Log — The First Life
 
+## Session 2026-07-03 (E) — Autonomous dev loop, iter 4: the catchable straggler (commit `a56b361`)
+
+> The single most important addition to the loop: it makes H14 actually *winnable*. An identical herd
+> tires in lockstep, so no individual falls behind. Predation-ecology subagent (Mech, Peterson & Page;
+> FitzGibbon; Liebenberg) confirmed the load-bearing fact — predators crop the substandard, prime adults
+> escape. Now a per-agent body condition `[0.78..1.0]` (injected before BeginPlay, player stays 1.0) FULLY
+> scales the innate stamina reserve and LIGHTLY trims top speed (`0.5 + 0.5·condition`), so a poor animal
+> runs with the herd on the first flush but empties sooner and **self-sorts to the rear under pressure —
+> no herd-brain change needed**. The spawner rolls a right-shouldered distribution
+> (`1 − Square(FRand)·(1−floor)`) so a dozen animals yield only one or two genuine stragglers. New seams:
+> `AAnimalCharacter::SetConditionOverride`, `ULocomotionComponent::SetSpeedScale`. Deferred: age/sex classes,
+> disease/injury sim, condition-over-time, maternal defense (one static scalar stands in). Still unplayed by
+> a human hand — GATE-A remains the gate.
+
 ## Session 2026-07-03 (E) — Autonomous dev loop, iters 2–3: hunger + second species
 
 > Same loop (research subagent → implementation → authoritative build → commit), run back-to-back.

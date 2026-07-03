@@ -55,7 +55,7 @@ These are the bets "The First Life" is built to test. If we are spending prototy
 **Confidence:** Low. This is subtle, easy to miss, and hard to force with grey boxes.
 **Validation:** Listen to *how* players narrate their session. *Redefined for the human pivot (2026-07-03):* embodied first-person language ("I was exhausted") is *default* for human avatars and no longer discriminates. The signal is now **animal-among-animals framing** — vulnerability, non-centrality, body limits ("they're faster than me — I can't win this," "I'm just another animal out here") vs. protagonist framing ("where's my weapon," "what's my objective").
 **Success looks like:** Players spontaneously describe themselves as one vulnerable animal in an indifferent world, bound by a body — not as the hero of the scene.
-**Risks:** Grey-box fidelity may suppress presence unfairly, giving a false negative. *Added by the pivot:* a human avatar weakens this hypothesis's diagnostic power overall — the deeper "inhabit another species" estrangement is only truly testable at roadmap stage 4 (second, non-human perspective). Interpret prototype presence signals with that caveat.
+**Risks:** Grey-box fidelity may suppress presence unfairly, giving a false negative. *Added by the pivot:* a human avatar weakens this hypothesis's diagnostic power overall — the deeper "inhabit another species" estrangement is only truly testable at roadmap stage 4 (second, non-human perspective). Interpret prototype presence signals with that caveat. *Added by the camera pivot (2026-07-03):* presence must now also survive an isometric viewpoint — the wider camera is the strongest detachment force yet introduced. Listen specifically for commander framing vs. creature framing (see H18).
 **Status:** Open.
 **Prototype coverage:** Partial — testable in principle, but presence may be under-served by prototype fidelity. Interpret a weak signal with caution, not as a verdict.
 
@@ -91,6 +91,39 @@ These are the bets "The First Life" is built to test. If we are spending prototy
 **Risks:** Bad tuning produces tedium and we misread it as the concept failing (false negative). Or we over-compress until it is a wolf chase wearing a human mesh — silently un-testing the hypothesis while appearing to pass it.
 **Status:** Open.
 **Prototype coverage:** Yes — this is now a core prototype question, tested at build-order step 4.
+
+### H15 — An isometric camera over a 3D world makes the ecosystem more readable
+
+**Question:** Does the wider isometric viewpoint make the living system — herd movement and cohesion, pursuit geometry, terrain and elevation, prey fatigue — dramatically more legible than a shoulder camera, so that *reading the simulation* becomes the core player skill?
+**Why it matters:** This is the camera pivot's founding claim (`DESIGN_DECISIONS.md` D14, 2026-07-03). The ecosystem is the product; if the isometric view doesn't make it meaningfully easier to read, the pivot loses its main justification.
+**Confidence:** Medium. Strong precedent for isometric readability (Project Zomboid's systemic clarity is the direct inspiration), but those games are not embodied single-animal experiences.
+**Validation:** Prototype playtests. Watch whether testers actually *use* the wider view — reading herd shape, tracking a chosen animal's fatigue, spotting terrain opportunities — when making decisions.
+**Success looks like:** Testers narrate reads unprompted ("that one's tiring — and the rise cuts its corner") and make mid-chase decisions based on what they can see, not on trial and error.
+**Risks:** Readability without embodiment — the view informs but detaches (see H18). Or grey-box tells are too crude to read at camera distance, producing a false negative about the perspective rather than the fidelity.
+**Status:** Open.
+**Prototype coverage:** Yes — this is the camera pivot's core prototype question.
+
+### H16 — A wider perspective strengthens emergent storytelling
+
+**Question:** Does seeing more of the simulation at once produce more — and richer — retellable stories (H4), because players *witness* system collisions instead of only experiencing their own thread of them?
+**Why it matters:** Emergence-over-scripting is the moat. If the camera lets players watch stories happen around them (a herd splitting, a straggler isolated, pressure building), the same simulation generates more perceived life per unit of simulation cost (relates to H13).
+**Confidence:** Medium.
+**Validation:** In post-play story recounting (same protocol as H4), count stories that include events the player *watched* versus only events they *did*.
+**Success looks like:** Stories that contain other animals' arcs ("while I was chasing mine, the rest of the herd doubled back behind me…") — narrative that a shoulder camera could not have delivered.
+**Risks:** Seeing everything drains mystery and tension; omniscience could weaken the vulnerability that powers presence. The right amount of visibility is an open question (Q18), not a free lunch.
+**Status:** Open.
+**Prototype coverage:** Partial — one herd on one small map is the simplest possible test; richer multi-system storytelling is deferred.
+
+### H18 — The isometric camera reduces production complexity without weakening immersion
+
+**Question:** Does the camera pivot actually buy the promised production savings — escaping third-person camera feel, close-up animation fidelity, and cinematic asset expectations — while keeping the "I *am* this animal" presence (H3) intact?
+**Why it matters:** Half the pivot rationale is production math for a solo dev; the other half is the risk that we quietly pay for those savings with the game's #1 emotion. Both halves must be tracked, or we'll only notice the half that flatters the decision.
+**Confidence:** Low on the immersion half; Medium-High on the savings half.
+**Validation:** Savings — log concrete avoided work in `BUILD_LOG.md` as it happens (animation polish skipped, camera systems not built, asset quality bars lowered). Immersion — the same presence-listening protocol as H3, now specifically listening for *commander language* ("send him over there," "my unit") versus *creature language* ("I'm exhausted," "I can't win this sprint").
+**Success looks like:** The build log shows real avoided work, and testers still self-describe as the animal, not as its operator.
+**Risks:** Presence loss is subtle and we rationalize it because the pivot is already made. Or the savings get eaten by new costs the camera creates — readability VFX, fatigue tells that work at distance, terrain that reads from above.
+**Status:** Open.
+**Prototype coverage:** Partial — the immersion half is testable now; the production-savings half accrues as evidence over the whole build.
 
 ---
 
@@ -185,6 +218,17 @@ These matter enormously but require systems, species, or scale the prototype del
 **Risks:** We over-simulate for our own satisfaction; or we under-simulate and the world feels shallow in ways players sense but can't name.
 **Status:** Open.
 **Prototype coverage:** Partial — even at prototype scale, note which herd behaviors players actually perceive vs. which we built for ourselves.
+
+### H17 — Species perception can be represented visually from the isometric view
+
+**Question:** Can per-species senses be expressed visually from the wider camera — overlays, vision cones, scent trails, sound indicators, field-of-view shading — so that "how this body senses the world" is readable from above, without collapsing into UI soup?
+**Why it matters:** This is the mechanism behind "every species is a different game" under the new camera, and the sibling of H8. In third person you could *inhabit* a sense (screen effects, audio); isometric must *visualize* it. If senses can't be shown from above, the species-perception thesis and the camera decision are in tension.
+**Confidence:** Low-Medium. Rich precedent for individual techniques (vision cones, sound rings, scent trails in stealth and sim games); unproven that a whole sensory identity per species reads clearly and stays immersive.
+**Validation:** Deferred — the prototype uses plain line-of-sight with no overlays. The first real test rides with the scent/tracking system (roadmap stage 2): can a scent-led perception layer change player behavior without breaking the fiction?
+**Success looks like:** Player behavior visibly changes with the represented sense (moving downwind of a scent trail, freezing inside a vision cone) and players describe the sense as *the animal's*, not as a UI feature.
+**Risks:** Overlay soup kills diegesis and the indifferent-world feel; or we gold-plate gorgeous sense visualizations nobody uses (the H13 trap). Also relates to Q18/Q19 — visibility and perception representation must be decided together.
+**Status:** Testing — *updated 2026-07-03 (twice):* the first build (overlays annotating an omniscient view) was judged the **wrong abstraction** the same day — presentation changed, information didn't, so no decision changed. Redesigned in `PERCEPTION_DESIGN.md` around *information availability*: the screen renders what the body knows. Slice 1 is implemented — vision-only Absent/Tracked gating (cone + range + line of sight, percepts never fabricate), tuned for human vs. big cat; v1 overlays demoted to a debug toggle. The hypothesis under live test is now sharper: *does losing information feel like inhabiting a body, or like being cheated?*
+**Prototype coverage:** Partial — slice 1 tests knowledge-gated vision only. The Detected/Remembered rungs (deer's motion sense, wolf's scent-as-memory) and attention postures are designed but unbuilt; per-species senses driving *AI gameplay* remains deferred.
 
 ---
 

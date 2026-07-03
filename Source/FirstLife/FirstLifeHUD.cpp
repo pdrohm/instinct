@@ -4,7 +4,31 @@
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/Font.h"
+#include "LocomotionComponent.h"
+#include "SpeciesPerceptionComponent.h"
+#include "SpeciesPerceptionProfile.h"
 #include "StaminaComponent.h"
+
+namespace
+{
+	const TCHAR* GaitLabel(const ULocomotionComponent& Locomotion)
+	{
+		if (Locomotion.IsResting())
+		{
+			return TEXT("RESTING");
+		}
+		switch (Locomotion.GetActiveGait())
+		{
+		case ELocomotionGait::Walk:
+			return TEXT("WALK");
+		case ELocomotionGait::Sprint:
+			return TEXT("SPRINT");
+		case ELocomotionGait::Jog:
+		default:
+			return TEXT("JOG");
+		}
+	}
+}
 
 namespace
 {
@@ -63,5 +87,25 @@ void AFirstLifeHUD::DrawHUD()
 	else if (bExhausted)
 	{
 		DrawText(TEXT("Exhausted"), Fill, X, Y - 24.f, Font);
+	}
+
+	// Gait readout: the three-state locomotion model, legible at a glance.
+	if (const ULocomotionComponent* Locomotion = Animal->GetLocomotion())
+	{
+		DrawText(GaitLabel(*Locomotion), FLinearColor(0.8f, 0.8f, 0.8f), X, Y + BarHeight + 8.f, Font);
+	}
+
+	// Species perception readout (debug switcher, SPECIES_PERCEPTION.md): which
+	// senses are currently interpreting the world, and how to swap them.
+	if (const USpeciesPerceptionComponent* Perception = Animal->GetPerception())
+	{
+		if (const USpeciesPerceptionProfile* Profile = Perception->GetActiveProfile())
+		{
+			const FString SpeciesLine = FString::Printf(TEXT("PERCEPTION: %s  (%d/%d — keys 1-4)"),
+				*Profile->SpeciesName.ToString(),
+				Perception->GetActiveProfileIndex() + 1,
+				Perception->GetProfileCount());
+			DrawText(SpeciesLine, FLinearColor(0.95f, 0.9f, 0.7f), 16.f, 16.f, Font);
+		}
 	}
 }

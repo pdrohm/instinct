@@ -37,6 +37,16 @@ Same world. Same rules of hunger, energy, cold, fear, and death. Radically diffe
 - **One world, many games.** The ecosystem is built once; each species is a new perspective on it, not a new game from scratch.
 - **A prehistoric setting with real teeth.** Iconic Ice Age fauna, genuine survival pressure (cold, scarcity, apex competitors), and a scientific foundation that inspires mechanics rather than decorating them.
 
+## Presentation: a fully 3D world, read through an isometric eye
+
+This is a **3D ecosystem simulation presented primarily through an isometric / top-down camera** — not a third-person cinematic survival game. The world stays fully 3D: real terrain and elevation, 3D animals and characters, modern lighting, navmesh, and animation systems in Unreal Engine 5. Only the *viewpoint* changes, and it changes on purpose.
+
+**The camera is a design tool for reading the ecosystem, not a limitation.** From a wider tactical vantage the player can understand what a shoulder camera hides: herd movement and cohesion, predator pressure building at the edges, wind and scent, terrain and elevation as strategy, and the geometry of a pursuit — gaps closing, corners worth cutting, a straggler drifting from safety. The ecosystem is the product; the camera exists to make it legible.
+
+The inspiration is the readability and systemic gameplay of Project Zomboid — **not** its 2D tile-based implementation. We keep the 3D engine and everything it buys us: the asset pipeline, animation quality, depth and lighting, performance scalability, and a real shipping path. No custom engine, no tile engine (`DESIGN_DECISIONS.md` D14).
+
+**And a hard principle: the player is not an RTS commander.** The player is one embodied animal inside the ecosystem. The isometric camera makes the ecosystem readable, but controls, feedback, and decision-making must always make the player feel like they are inhabiting one creature — one body, one set of senses, one life — never managing a squad or commanding a map.
+
 ## Design philosophy: every species experiences the same world differently
 
 One world, one set of survival rules, but each species meets that world through a different body and a different set of instincts. The design goal is that the *same terrain, the same herd, the same cold night* should pose a completely different problem depending on who you are inhabiting.
@@ -77,6 +87,7 @@ The hunt is only *one expression* of this loop — the predator's. A prey animal
 4. **Believable animals, not scripted actors.** AI quality is the product. If animals feel dumb, the vision collapses.
 5. **Science inspires, never limits.** When gameplay bends biology, we do it on purpose and say why.
 6. **Prove fun small before scaling anything.** Validate the smallest meaningful slice before adding species, systems, or players.
+7. **One embodied animal, seen from a readable vantage.** The isometric camera serves ecosystem readability; embodiment is non-negotiable. If a choice makes the player feel like a commander instead of a creature, it is wrong.
 
 ## What this is NOT (scope guardrails)
 
@@ -85,6 +96,7 @@ The hunt is only *one expression* of this loop — the predator's. A prey animal
 - Not "many species" soon. One playable animal first; every other perspective is earned, post-validation.
 - Not a persistent MMO. Multiplayer is a property of the architecture, not a destination on the roadmap.
 - Not photoreal AAA. Art is bought or stylized. Solo time goes into simulation and AI — the part nobody can buy.
+- Not a third-person cinematic game, and not an RTS or god game. A fully 3D world read from an isometric camera — one embodied life, not a command view over many.
 
 ## Staged roadmap
 

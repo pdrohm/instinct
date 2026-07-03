@@ -5,27 +5,15 @@
 
 #include "StaminaComponent.generated.h"
 
-class UAnimalConfig;
-
-/** What the body is doing right now, as reported by the owning agent. */
-UENUM()
-enum class EStaminaActivity : uint8
-{
-	Resting,
-	/** Walking pace — slow enough to recover while moving. */
-	Moving,
-	/** Sustainable run — the endurance gait; costs nothing, regains ~nothing. */
-	Running,
-	Sprinting
-};
-
 /**
- * The energy economy of one agent (H2). Owns drain/regen/exhaustion math;
- * the owning character reports activity, this component answers "can you afford it?".
- * Works identically whether an AI or a human is driving the body (H7).
+ * The energy reservoir of one agent (H2): current charge, capacity, and the
+ * exhaustion latch. Deliberately knows nothing about gaits or activities —
+ * the locomotion system (and later heat, cold, hunger) decides the signed
+ * rate and pushes it in through Update(). One battery, many consumers.
  *
- * Deliberately tickless: the owner calls Update() from its own Tick so the
- * activity used for drain/regen is never a frame stale.
+ * Deliberately tickless: the owner drives Update() from its own tick so the
+ * rate applied is never a frame stale. Works identically whether an AI or a
+ * human drives the body (H7).
  */
 UCLASS(ClassGroup = (FirstLife), meta = (BlueprintSpawnableComponent))
 class FIRSTLIFE_API UStaminaComponent : public UActorComponent
@@ -33,11 +21,11 @@ class FIRSTLIFE_API UStaminaComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	/** Pull tuning values from the species config. Call once the config is resolved. */
-	void Configure(const UAnimalConfig& Config);
+	/** Set capacity and the exhaustion recovery threshold; refills to full. */
+	void Configure(float InMaxStamina, float InExhaustionRecoveryFraction);
 
-	/** Advance the energy math for this frame, given what the body is doing. */
-	void Update(EStaminaActivity Activity, float DeltaSeconds);
+	/** Apply this frame's signed energy rate (units/s): regen positive, drain negative. */
+	void Update(float RatePerSecond, float DeltaSeconds);
 
 	UFUNCTION(BlueprintPure, Category = "Stamina")
 	float GetStamina() const { return Current; }
@@ -59,10 +47,6 @@ public:
 private:
 	// Tuning, sourced from UAnimalConfig via Configure().
 	float Max = 100.f;
-	float SprintDrainPerSecond = 12.f;
-	float RunRegenPerSecond = 0.f;
-	float WalkRegenPerSecond = 10.f;
-	float RestRegenPerSecond = 22.f;
 	float ExhaustionRecoveryFraction = 0.3f;
 
 	// State.

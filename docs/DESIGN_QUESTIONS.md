@@ -92,6 +92,40 @@ Priority tags:
 **Why it's hard:** D8 defers it as a consequence, not a goal. But "never decide" is itself a decision. We need a *trigger condition* — what evidence would make netcode worth the scarce time — rather than a vague "later."
 **Pulls:** Toward building — social stories, reach, the shared-world dream. Against — cost, and the risk of scaling before the core earns it.
 
+### Q15 [SYSTEM] — How far should the camera sit — and should the player control zoom?
+
+**Why it's hard:** Camera distance is the single dial that trades embodiment against readability (D14). Close-in preserves presence and the animal's scale but hides the ecosystem; pulled back reveals herd shape, terrain, and pursuit geometry but shrinks *you* into a token. A zoom range sounds like the easy compromise, but every zoom level must be readable, tuned, and fair — and player-controlled zoom can become a de facto difficulty setting (zoom out = see more = play better).
+**Pulls:** Toward close/fixed — presence, art discipline, one readability target. Toward far/zoomable — tactical clarity, player comfort, genre convention.
+**Answer with the prototype in hand, not before.** Build-order step 1 exists partly to feel this out.
+
+### Q16 [SYSTEM] — Fixed camera, limited rotation, or free rotation?
+
+**Why it's hard:** A fixed angle maximizes readability and slashes art cost — every asset, silhouette, and tell is authored for one known viewpoint. But a 3D world with real elevation creates occlusion (behind that rise, behind that rock) that rotation solves naturally. Free rotation reintroduces the full asset-facing cost the pivot was meant to avoid and can disorient; limited rotation (e.g. 90° steps or a narrow arc) is the classic compromise but still multiplies the readability surfaces to test.
+**Pulls:** Toward fixed — readability, cost, discipline. Toward rotation — 3D terrain payoff, occlusion handling, player comfort. Occlusion tricks (dithering, cutaways, silhouette-through-walls) can substitute for rotation and should be evaluated first — they're cheaper.
+
+### Q17 [CORE] — WASD direct control or click-to-move?
+
+**Why it's hard:** This is not an input preference — it's an embodiment decision, which is why it's CORE. Direct WASD control keeps the player *in* the body: every step is theirs, stamina is felt in the fingers. Click-to-move suits the wider camera and reads naturally at isometric distance, but it is the single strongest push toward "commanding a unit" (Q20) — you stop being the animal and start instructing it.
+**Pulls:** Toward WASD — presence, moment-to-moment stamina tension, the DNA. Toward click-to-move — camera-distance ergonomics, accessibility, genre familiarity at this perspective.
+**Current default hypothesis:** direct control (the prototype ships WASD-style). Revisit only with playtest evidence, and treat any drift toward click-to-move as a presence alarm, not a convenience upgrade.
+
+### Q18 [CORE] — How much tactical visibility should the player have?
+
+**Why it's hard:** The camera can show more than the animal could ever sense. Full visibility maximizes readability (H15) but makes the player omniscient — killing ambush, surprise, and the vulnerability that powers presence; it also quietly breaks "you are one animal with one set of senses." Masking visibility to the animal's perception (fog, awareness fade) preserves embodiment but risks frustrating players who feel the camera is lying to them.
+**Pulls:** Toward full visibility — clarity, fairness, tactical play. Toward sense-limited visibility — embodiment, tension, the species-perception thesis (H17, Q19). The answer probably differs per information type (terrain vs. animals vs. internal states) and must be decided *with* Q19, not separately.
+
+### Q19 [SYSTEM] — How should different species' perception of the same world be represented from the same camera?
+
+**Why it's hard:** Every species sees the same isometric view, so species identity must come from *what is revealed and how*: a wolf's world drawn in scent trails and sound, a horse's in wide vigilance arcs and motion sensitivity, a human's in sightlines and terrain reading. That's the promise of H8/H17 — but each representation is bespoke design + VFX work, must stay legible at camera distance, must not stack into overlay soup, and must feel like *the animal's senses*, not a UI skin.
+**Pulls:** Toward rich per-species representation — the "different game per species" payoff made visible. Toward one shared model with light theming — cost, clarity, and the honest possibility (H8) that behavior tuning alone already differentiates species enough.
+**Deferred with H17:** nothing here enters the prototype; first real test rides with scent/tracking at roadmap stage 2.
+
+### Q20 [CORE] — How do we keep this from feeling like an RTS instead of inhabiting one animal?
+
+**Why it's hard:** The isometric camera imports an entire genre's muscle memory — select, command, observe from above. Every convenience the perspective invites (click-to-move, camera detached from the body, info overlays, pause-and-plan) is a small step from *being* the animal to *managing* it. No single feature causes the drift; the accumulation does. Like Q6 (combat gravity), this needs an active answer, not vigilance.
+**Pulls:** Toward RTS idioms — ergonomics, familiarity, readability. Against — the DNA: one embodied life, presence as the #1 emotion.
+**Candidate structural answers to evaluate:** camera anchored to the body (never free-roaming), direct control only (Q17), feedback routed through the body (breathing, gait, audio) rather than through UI, no pause-planning, visibility bounded by the animal's senses (Q18). The prototype's presence listening (H3/H18) is the early-warning system.
+
 ---
 
 ## Questions to add as we go

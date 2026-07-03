@@ -42,6 +42,9 @@ private:
 	void HandleWalkCompleted(const FInputActionValue& Value);
 	void HandleTogglePossession(const FInputActionValue& Value);
 
+	/** Debug species-perception switcher: keys 1-4 (SPECIES_PERCEPTION.md). */
+	void HandleSelectSpecies(const FInputActionValue& Value, int32 ProfileIndex);
+
 	UPROPERTY()
 	TObjectPtr<UInputMappingContext> MappingContext;
 
@@ -59,6 +62,10 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UInputAction> ToggleAction;
+
+	/** One action per species slot, mapped to keys 1-4. Debug switcher, not final UI. */
+	UPROPERTY()
+	TArray<TObjectPtr<UInputAction>> SpeciesActions;
 
 	/** The agent we handed back to its own brain, so P can reclaim it. */
 	TWeakObjectPtr<AAnimalCharacter> ReleasedAnimal;

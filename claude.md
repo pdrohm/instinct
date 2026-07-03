@@ -205,6 +205,18 @@ C++
 
 Blueprints where appropriate
 
+Default gameplay camera:
+
+Isometric or top down, over a fully 3D scene.
+
+The world is fully 3D: terrain, characters, animals, depth buffer, lighting, navmesh, animation systems, modern engine features.
+
+Prioritize simulation readability over cinematic realism.
+
+Do not recommend 2D tile engines or tile-based architecture unless we explicitly revisit the engine decision.
+
+Do not recommend building a custom engine.
+
 Always think about:
 
 Networking
@@ -430,6 +442,34 @@ Encourage discovery.
 Avoid unnecessary UI.
 
 Every UI element should have a reason to exist.
+
+---
+
+# Embodiment
+
+The player is not an RTS commander.
+
+The player is one embodied animal inside the ecosystem.
+
+The isometric camera exists to make the ecosystem readable.
+
+Controls, feedback and decision making must make the player feel like they are inhabiting one creature, not managing a squad.
+
+When a design choice pulls toward commanding, pull it back toward inhabiting.
+
+---
+
+# Production Principles
+
+Use existing 3D assets from Fab, Quixel, Marketplace or community sources where possible.
+
+Avoid custom modeling.
+
+Avoid building a custom engine.
+
+Avoid 2D tile based architecture.
+
+Invest engineering time into simulation, AI, species perception and energy systems.
 
 ---
 

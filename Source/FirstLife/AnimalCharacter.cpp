@@ -9,18 +9,27 @@
 #include "FirstLife.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "LocomotionComponent.h"
+#include "SpeciesPerceptionComponent.h"
 #include "StaminaComponent.h"
 #include "UObject/ConstructorHelpers.h"
 
 namespace
 {
-	/** Below this ground speed (cm/s) the animal counts as resting. */
-	constexpr float RestSpeedThreshold = 20.f;
+	// Fixed isometric rig (D14). Angle/distance/FOV are first-feel defaults for the
+	// open camera questions (Q15 distance, Q16 rotation) — provisional until the
+	// hands-on pass, like the locomotion numbers in D13.
+	constexpr float IsoCameraPitch = -52.5f;
+	constexpr float IsoCameraYaw = -45.f;
+	constexpr float IsoCameraDistance = 2600.f;
+	constexpr float IsoCameraFieldOfView = 45.f;
+	constexpr float IsoCameraLagSpeed = 8.f;
 }
 
 AAnimalCharacter::AAnimalCharacter()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	// Movement thinks in ULocomotionComponent's tick; the actor itself has nothing to do.
+	PrimaryActorTick.bCanEverTick = false;
 
 	// Humanoid proportions: ~180cm standing figure.
 	GetCapsuleComponent()->InitCapsuleSize(34.f, 90.f);
@@ -30,9 +39,10 @@ AAnimalCharacter::AAnimalCharacter()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
 
 	Stamina = CreateDefaultSubobject<UStaminaComponent>(TEXT("Stamina"));
+	Locomotion = CreateDefaultSubobject<ULocomotionComponent>(TEXT("Locomotion"));
+	Perception = CreateDefaultSubobject<USpeciesPerceptionComponent>(TEXT("Perception"));
 
 	// Grey-box early human: an upright torso box and a head box, from engine content
 	// only. Placeholder until a marketplace/Fab humanoid is brought in (spec: art is
@@ -57,15 +67,27 @@ AAnimalCharacter::AAnimalCharacter()
 		HeadMesh->SetStaticMesh(CubeMesh.Object);
 	}
 
+	// Fixed isometric eye over the fully 3D scene (D14). Absolute rotation: the body
+	// turns to face where it runs, the camera never turns with it — no orbit, no zoom,
+	// no tactical controls yet (Q15/Q16). The narrow FOV at long range flattens
+	// perspective toward the isometric read; spring-arm lag keeps the follow smooth.
+	// Collision test off: terrain between eye and body must never snap-zoom the view —
+	// occlusion handling is deferred with Q16.
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->TargetArmLength = 450.f;
-	SpringArm->SocketOffset = FVector(0.f, 0.f, 80.f);
-	SpringArm->bUsePawnControlRotation = true;
+	SpringArm->SetUsingAbsoluteRotation(true);
+	SpringArm->SetRelativeRotation(FRotator(IsoCameraPitch, IsoCameraYaw, 0.f));
+	SpringArm->TargetArmLength = IsoCameraDistance;
+	SpringArm->SocketOffset = FVector::ZeroVector;
+	SpringArm->bUsePawnControlRotation = false;
+	SpringArm->bDoCollisionTest = false;
+	SpringArm->bEnableCameraLag = true;
+	SpringArm->CameraLagSpeed = IsoCameraLagSpeed;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
+	Camera->SetFieldOfView(IsoCameraFieldOfView);
 
 	// The agent's own brain. Only spawned when no player holds the body (H7 seam).
 	AIControllerClass = AAnimalAIController::StaticClass();
@@ -92,62 +114,26 @@ void AAnimalCharacter::BeginPlay()
 
 void AAnimalCharacter::ApplyConfig()
 {
-	// Default gait is the sustainable run; walk and sprint are deliberate choices.
-	GetCharacterMovement()->MaxWalkSpeed = ResolvedConfig->RunSpeed;
-	Stamina->Configure(*ResolvedConfig);
+	Stamina->Configure(ResolvedConfig->MaxStamina, ResolvedConfig->ExhaustionRecoveryFraction);
+	Locomotion->Configure(*ResolvedConfig);
 }
 
 void AAnimalCharacter::SetWantsToSprint(bool bInWantsToSprint)
 {
-	bWantsToSprint = bInWantsToSprint;
+	Locomotion->SetWantsToSprint(bInWantsToSprint);
 }
 
 void AAnimalCharacter::SetWantsToWalk(bool bInWantsToWalk)
 {
-	bWantsToWalk = bInWantsToWalk;
+	Locomotion->SetWantsToWalk(bInWantsToWalk);
 }
 
-void AAnimalCharacter::Tick(float DeltaTime)
+bool AAnimalCharacter::IsSprinting() const
 {
-	Super::Tick(DeltaTime);
+	return Locomotion->IsSprinting();
+}
 
-	if (!ResolvedConfig)
-	{
-		return;
-	}
-
-	// Charge for the state the body was actually in this frame...
-	const float GroundSpeed = GetVelocity().Size2D();
-	EStaminaActivity Activity = EStaminaActivity::Resting;
-	if (GroundSpeed > RestSpeedThreshold)
-	{
-		if (bSprintActive)
-		{
-			Activity = EStaminaActivity::Sprinting;
-		}
-		else
-		{
-			Activity = bWantsToWalk ? EStaminaActivity::Moving : EStaminaActivity::Running;
-		}
-	}
-	Stamina->Update(Activity, DeltaTime);
-
-	// ...then re-gate: sprint is a continuous negotiation with stamina, not a latch.
-	// The moment the body is exhausted the sprint dies mid-stride, whoever drives (H2).
-	bSprintActive = bWantsToSprint && Stamina->CanSprint();
-
-	// Resolve the gait: sprint > walk > run (the human's default, sustainable pace).
-	float DesiredSpeed = ResolvedConfig->RunSpeed;
-	if (bSprintActive)
-	{
-		DesiredSpeed = ResolvedConfig->SprintSpeed;
-	}
-	else if (bWantsToWalk)
-	{
-		DesiredSpeed = ResolvedConfig->WalkSpeed;
-	}
-	if (GetCharacterMovement()->MaxWalkSpeed != DesiredSpeed)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = DesiredSpeed;
-	}
+float AAnimalCharacter::GetCameraYaw() const
+{
+	return SpringArm->GetComponentRotation().Yaw;
 }

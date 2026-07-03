@@ -13,4 +13,12 @@ class FIRSTLIFE_API AFirstLifeGameMode : public AGameModeBase
 
 public:
 	AFirstLifeGameMode();
+
+protected:
+	/**
+	 * Spawns a few wander-brain animals as debug perception targets so every species
+	 * mode has something to see, hear, and smell (SPECIES_PERCEPTION.md). They reuse
+	 * the existing AI wander — this is NOT the herd (H5) and must not grow into it.
+	 */
+	virtual void BeginPlay() override;
 };

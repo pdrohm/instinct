@@ -8,6 +8,7 @@
 #include "InputActionValue.h"
 #include "InputMappingContext.h"
 #include "InputModifiers.h"
+#include "SpeciesPerceptionComponent.h"
 
 void AWolfPlayerController::SetupInputComponent()
 {
@@ -38,6 +39,11 @@ void AWolfPlayerController::SetupInputComponent()
 	Input->BindAction(WalkAction, ETriggerEvent::Started, this, &AWolfPlayerController::HandleWalkStarted);
 	Input->BindAction(WalkAction, ETriggerEvent::Completed, this, &AWolfPlayerController::HandleWalkCompleted);
 	Input->BindAction(ToggleAction, ETriggerEvent::Started, this, &AWolfPlayerController::HandleTogglePossession);
+	for (int32 Index = 0; Index < SpeciesActions.Num(); ++Index)
+	{
+		Input->BindAction(SpeciesActions[Index], ETriggerEvent::Started, this,
+			&AWolfPlayerController::HandleSelectSpecies, Index);
+	}
 }
 
 void AWolfPlayerController::BuildInputObjects()
@@ -82,6 +88,16 @@ void AWolfPlayerController::BuildInputObjects()
 	MappingContext->MapKey(SprintAction, EKeys::LeftShift);
 	MappingContext->MapKey(WalkAction, EKeys::LeftControl);
 	MappingContext->MapKey(ToggleAction, EKeys::P);
+
+	// Species perception debug switcher: 1 = human, 2 = deer, 3 = wolf, 4 = big cat.
+	const FKey SpeciesKeys[] = {EKeys::One, EKeys::Two, EKeys::Three, EKeys::Four};
+	for (int32 Index = 0; Index < UE_ARRAY_COUNT(SpeciesKeys); ++Index)
+	{
+		UInputAction* Action = NewObject<UInputAction>(
+			this, *FString::Printf(TEXT("IA_Species%d"), Index + 1));
+		SpeciesActions.Add(Action);
+		MappingContext->MapKey(Action, SpeciesKeys[Index]);
+	}
 }
 
 AAnimalCharacter* AWolfPlayerController::GetInhabitedAnimal() const
@@ -98,7 +114,10 @@ void AWolfPlayerController::HandleMove(const FInputActionValue& Value)
 	}
 
 	const FVector2D Axis = Value.Get<FVector2D>();
-	const FRotator YawRotation(0.f, GetControlRotation().Yaw, 0.f);
+	// Screen-relative WASD against the fixed isometric camera (D14): W is always "up
+	// the screen". Control rotation is no longer the movement basis — with a fixed
+	// camera it would let mouse motion invisibly rotate the WASD frame.
+	const FRotator YawRotation(0.f, Animal->GetCameraYaw(), 0.f);
 	const FVector Forward = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector Right = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
@@ -106,11 +125,11 @@ void AWolfPlayerController::HandleMove(const FInputActionValue& Value)
 	Animal->AddMovementInput(Right, Axis.X);
 }
 
-void AWolfPlayerController::HandleLook(const FInputActionValue& Value)
+void AWolfPlayerController::HandleLook(const FInputActionValue& /*Value*/)
 {
-	const FVector2D Axis = Value.Get<FVector2D>();
-	AddYawInput(Axis.X);
-	AddPitchInput(Axis.Y);
+	// Intentionally inert: the isometric camera is fixed (D14) — no free orbit yet.
+	// Limited rotation is an open question (Q16); the look-input plumbing stays so a
+	// future answer can rebind without re-deriving the input path.
 }
 
 void AWolfPlayerController::HandleSprintStarted(const FInputActionValue& Value)
@@ -142,6 +161,17 @@ void AWolfPlayerController::HandleWalkCompleted(const FInputActionValue& Value)
 	if (AAnimalCharacter* Animal = GetInhabitedAnimal())
 	{
 		Animal->SetWantsToWalk(false);
+	}
+}
+
+void AWolfPlayerController::HandleSelectSpecies(const FInputActionValue& /*Value*/, int32 ProfileIndex)
+{
+	if (AAnimalCharacter* Animal = GetInhabitedAnimal())
+	{
+		if (USpeciesPerceptionComponent* Perception = Animal->GetPerception())
+		{
+			Perception->SetActiveProfileIndex(ProfileIndex);
+		}
 	}
 }
 

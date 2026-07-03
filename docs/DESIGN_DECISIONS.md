@@ -88,6 +88,18 @@ Format:
 **Tradeoff accepted:** No brand identity, no marketing hook, harder to talk about the project externally in the meantime.
 **Status:** Working.
 
+### D13 — Locomotion is a species' biomechanical identity, expressed as data
+
+**Why:** Movement is a core pillar, not plumbing. Every species is a different movement *philosophy* — human: recover-while-jogging endurance; wolf: fast lope it cannot recover in; big cat: explosive burst, long recovery; large herbivore: momentum without maneuverability — and all of it lives in `UAnimalConfig` data assets (per-gait speed/acceleration/signed stamina delta, preferred gait, turn rate, braking), never in class code. The human's jog now *regenerates slowly* (+4/s), superseding the earlier stamina-neutral run: recovering while moving is the species' defining trait, making jog the unambiguous travel gait while sprint stays a tactical purchase. Architecture: `docs/LOCOMOTION.md`.
+**Tradeoff accepted:** A shared three-gait state machine pushes exotic locomotion (swimming, burrowing, flight) into future extensions, and a regenerating jog risks making walk feel pointless if mistuned — the walk/jog regen gap (10 vs 4) must stay meaningful in playtests.
+**Status:** Working; the numbers are Provisional until a hands-on feel pass.
+
+### D14 — A fully 3D world, presented through an isometric camera
+
+**Why:** The ecosystem simulation is the product, and the camera should make it readable. An isometric/top-down view over a fully 3D UE5 scene lets the player read herd movement, predator pressure, wind and scent, terrain and elevation, and pursuit geometry from a tactical vantage — while keeping everything the modern engine buys us: 3D terrain and characters, depth buffer, lighting, navmesh, animation systems, the asset pipeline, performance scalability, and a real console/PC shipping path. It also cuts the production burden of third-person cinematic expectations (camera feel, close-up animation fidelity) — a decisive saving for a solo dev. Inspiration is Project Zomboid's readability and systemic gameplay, explicitly **not** its 2D tile-based implementation: no custom engine, no tile engine, no 2D architecture. Hard constraint riding with the decision: **the player is not an RTS commander** — one embodied animal, with controls and feedback that keep pulling toward inhabiting, never managing (`VISION.md`, Q20).
+**Tradeoff accepted:** Presence — the project's #1 emotion — must now survive a wider, inherently more detached viewpoint; this is the pivot's biggest risk (H18). Readability of body-state tells at camera distance becomes a design constraint on every animal, asset, and system (H15), and a cluster of camera questions opens (Q15–Q20).
+**Status:** Working; validated or revisited on prototype evidence (H15, H16, H18).
+
 ---
 
 ## Acknowledged tensions between decisions
@@ -98,6 +110,7 @@ Honest decision records surface where their own decisions fight each other. Thes
 - **D4 (AI over graphics) vs. the readability floor.** Animals broadcast intent and emotion through motion and visual cues. You cannot fully separate "believable AI" from "legible presentation." AI-over-graphics is a priority, not a license to neglect the animation and readability that make the AI *legible*.
 - **D6 (emergent systems) vs. D5 / player legibility.** Emergent systems resist authored guarantees. We cannot promise any specific moment will happen, which complicates onboarding, tutorials, and marketing beats. We trade predictability for depth and must find non-authored ways to make the game legible.
 - **D11 (indifferent world) vs. reaching an audience.** The single biggest risk in the design. An indifferent world is the soul of the game and potentially the wall between it and a wide audience. We have chosen the soul. Whether we can make it *approachable* without betraying it is the central open question of the project.
+- **D14 (isometric readability) vs. presence, the #1 emotion.** The camera that makes the ecosystem most legible is also the camera most likely to make the player feel like a manager instead of an animal. The viewpoint no longer carries embodiment for free — controls, body-anchored feedback, and sense-bounded visibility must carry it instead (Q17, Q18, Q20). H15 and H18 exist to test whether we can have both; if we can't, this tension gets re-litigated with evidence.
 - **D8/D9 (defer multiplayer and extra species) vs. commercial expectations.** Our scope discipline defers exactly the features most likely to sell the game. We are betting that a deep, distinctive core earns the right to those features later — rather than that a broad, shallow feature list wins now.
 
 When you make a new significant decision, add it here with its tradeoff. When two decisions collide in practice, add the collision to this list. The value of this document is proportional to how honestly it records what our choices cost.

@@ -1,5 +1,31 @@
 # Implementation Log — The First Life
 
+## Session 2026-07-03 (B) — Locomotion becomes a core pillar
+
+> Full architecture: `docs/LOCOMOTION.md`. Decision record: `docs/DESIGN_DECISIONS.md` D13.
+
+- **Refactor:** gait logic extracted from `AAnimalCharacter::Tick` into a new
+  `ULocomotionComponent` (ticks TG_PrePhysics; character no longer ticks). Controllers
+  still only express intent via the unchanged `SetWantsToSprint/SetWantsToWalk` seam (H7).
+- **Data model:** `UAnimalConfig` reshaped into a species locomotion profile —
+  per-gait `FGaitSettings { MaxSpeed, Acceleration, StaminaDeltaPerSecond }` for
+  Walk/Jog/Sprint (new `LocomotionTypes.h`), plus `PreferredGait`, `TurnRateDegPerSecond`,
+  `BrakingDeceleration`, `MaxStamina`, `RestRegenPerSecond`, `ExhaustionRecoveryFraction`.
+- **Gait rename:** the default gait is now *Jog* (was "Run") to match the design language.
+- **Jog regenerates (+4/s)** — supersedes the previous session's stamina-neutral run, per
+  design direction: recovering while moving is the Homo sapiens identity. Order: rest 22 >
+  walk 10 > jog 4 > sprint −12 (~8 s burst; exhaustion locks sprint until 30%).
+- **Sprint acceleration** now data-driven and high (2400 vs jog 1200 / walk 768).
+- **`UStaminaComponent` simplified** to a pure signed-rate reservoir + exhaustion latch
+  (`EStaminaActivity` retired); locomotion — and later heat/hunger — decide the rates.
+- **HUD:** gait label (RESTING/WALK/JOG/SPRINT) under the stamina bar.
+- **Inputs unchanged:** WASD jog, Shift sprint, Ctrl walk, P possession toggle.
+- **`DA_Human.uasset`** predates the schema change; orphaned old floats are ignored and new
+  struct defaults are the human profile — behavior identical. Re-save to clean (see doc).
+- **Compile status:** `Result: Succeeded` (FirstLifeEditor, Mac, Development).
+
+---
+
 > Session 2026-07-03 — Homo sapiens pivot, build unblock, and 3-gait locomotion.
 > Companion to `docs/BUILD_LOG.md` (evidence log) and `docs/PROTOTYPE_SPEC.md` (scope contract).
 

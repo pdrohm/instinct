@@ -3,12 +3,15 @@
 > Companion to `VISION.md`. This spec defines the single bet worth making first.
 > Rule: if it is not required to answer the core question, it is out of scope. No exceptions without a written reason.
 > **2026-07-03 pivot:** first playable species changed from wolf to early *Homo sapiens*. Rationale below and in `BUILD_LOG.md`. The systems under test did not change — the body did.
+> **2026-07-03 camera pivot:** gameplay perspective changed from third-person to an **isometric camera over the same fully 3D world** (`VISION.md`, `DESIGN_DECISIONS.md` D14). Scope is unchanged — same systems, same small map, same success criteria at heart. The viewpoint changed, not the game.
 
 ## What we are actually validating
 
 The vision is *"living as another species inside a scientifically grounded prehistoric ecosystem."* The prototype validates the load-bearing assumption underneath that:
 
 **Is inhabiting an animal inside a living ecosystem inherently engaging through simple survival systems alone — with zero scripted content?**
+
+The camera pivot adds a **secondary perspective question that rides along for free — no new systems**: does the isometric 3D viewpoint make survival decisions, the pursuit, and the stamina economy *easier to read and more interesting* than a shoulder camera would — while still feeling like being one animal, not commanding one? (H15, H18.)
 
 The player's first body is an early human — but an early human played *as an animal*: no tools, no crafting, no technology. Same rules as everything else alive on the steppe. Hungry, slow in a sprint, and bound by a body.
 
@@ -31,8 +34,9 @@ The prototype succeeds if, in a ~10-minute session, a naive tester **unprompted*
 2. Feels the energy economy (hunger vs. stamina) as tension, not as a chore or a UI bar to babysit.
 3. Talks about the experience as being *an animal among animals* — vulnerable, non-central, bound by a body — rather than as a protagonist the world is arranged around.
 4. Wants to try again with a different approach after failing.
+5. Reads the situation from the wider view — prey fatigue, herd shape, distances, terrain — and uses that reading to decide (cut the corner, keep pushing, abandon the chase).
 
-It fails if testers treat the human as a generic game avatar, ignore the energy economy, feel the herd is a dumb target rather than a reactive, alive part of the world — or if the long pursuit reads as tedium rather than mounting pressure. Failure is a valid, valuable outcome — it saves a year.
+It fails if testers treat the human as a generic game avatar, ignore the energy economy, feel the herd is a dumb target rather than a reactive, alive part of the world, or if the long pursuit reads as tedium rather than mounting pressure. It also fails if the isometric view makes them feel like they are *commanding a unit* rather than *being the animal* — that is the camera failing its job, and it is a result we want to catch early. Failure is a valid, valuable outcome — it saves a year.
 
 ## Player fantasy for the slice
 
@@ -49,7 +53,7 @@ Implementation is **identical** to the lean slice already built for the wolf —
 - Hard boundaries. No navigation beyond the play space.
 
 ### The player agent (early Homo sapiens)
-- Third-person camera, move + sprint.
+- **Isometric camera over the 3D scene** — angle, distance, and rotation policy are open tuning questions (`DESIGN_QUESTIONS.md` Q15–Q16); direct WASD-style embodied control is the default hypothesis, with click-to-move an open question (Q17). Move + sprint.
 - **Stamina**: drains while sprinting, regenerates while walking/resting. Sprinting closes distance briefly but can never outrun prey outright — stamina *is* the action budget, and endurance is the only winning strategy.
 - **Hunger**: a slow clock. Rises over time; forces action. Feeding resets it. Starvation ends the run.
 - One action verb: **pursue** (sprint/press to keep prey moving and deny them recovery). Contact with an exhausted prey = feed. That is the entire interaction model — no attack timing, no throwing, no health bars. Keep it crude on purpose; the point is the *decision*, not the mechanic.
@@ -62,7 +66,7 @@ Implementation is **identical** to the lean slice already built for the wolf —
 
 ### Feedback (minimal, diegetic where possible)
 - Readable stamina indicator for the player.
-- A readable *prey* fatigue tell (gait/posture degradation — animation states, not UI), because the entire commit/abandon decision hinges on reading it.
+- A readable *prey* fatigue tell (gait/posture degradation — animation states, not UI), because the entire commit/abandon decision hinges on reading it. **It must read at isometric camera distance** — silhouette and gait, not close-up detail.
 - A hunger state the player can *feel* (screen/audio cue as it gets dangerous — not a numeric obsession).
 - Clear feed and clear death moments. Nothing else.
 
@@ -72,7 +76,7 @@ Goal: **immersion, not realism** — the environment should already whisper *Ice
 
 - **All art is acquired**: Fab / Quixel Megascans (terrain, rocks, ground surfaces), marketplace foliage packs (sparse steppe grasses/shrubs — not forests), marketplace terrain assets.
 - **The player character is a marketplace/Fab prehistoric or "primitive human" character**, retargeted to standard humanoid locomotion animations. Anatomically believable is enough. **Zero custom modeling, zero custom animation.**
-- The dressing must serve gameplay first: open sightlines, natural LOS blockers, interesting elevation, readable silhouettes at distance. If an asset hurts readability or frame rate, cut it — sparse and legible beats dense and pretty.
+- The dressing must serve gameplay first: open sightlines, natural LOS blockers, interesting elevation, readable silhouettes at distance. Everything is judged **from the isometric camera's height and angle** — ground readability and silhouettes trump close-up detail. If an asset hurts readability or frame rate, cut it — sparse and legible beats dense and pretty.
 - **Timebox the entire environment/character pass.** It is set dressing for a hypothesis test, not a deliverable. When the timebox ends, it ships as-is.
 
 ## Explicitly OUT of scope (do not build these yet)
@@ -94,6 +98,7 @@ A playable human makes several of these *more* tempting, not less — players wi
 ## Technical approach (deliberately un-fancy)
 
 - **Engine:** Unreal Engine 5.
+- **Camera:** isometric / top-down over the fully 3D scene. Standard UE5 pipeline throughout — 3D terrain, depth buffer, lighting, navmesh, animation. **No 2D tile engine, no custom engine.** The perspective is a camera rig, not an architecture.
 - **Animals as ordinary Actors**, not Mass entities. A dozen animals does not need ECS.
 - **AI via State Tree (or Behavior Trees)** — graze / alert / flee / return for prey; idle / wander for the human's resident brain (unused while the player drives, but present so the human is a genuine agent like everything else).
 - **Possession from day one.** The human is an AI agent whose decisions are handed to player input — identical seam to the wolf build. This is non-negotiable; it *is* the architectural bet from `VISION.md`. Note: the wolf→human swap is itself the first evidence for that bet (H7) — if the swap is genuinely mesh + data + tuning, the architecture is doing its job.
@@ -105,7 +110,7 @@ A playable human makes several of these *more* tempting, not less — players wi
 
 Each step should be independently playable and answer something. Do not proceed until the current one feels right.
 
-1. **Human + stamina.** Move and sprint through the human's body on the steppe. Does inhabiting it feel good? Does the stamina budget create a rhythm? *(Carries over from the wolf slice — swap body, retune config.)*
+1. **Human + stamina, seen isometrically.** Move and sprint through the human's body on the steppe, from the isometric camera. Does inhabiting it feel good *from the wider view*? Does the stamina budget create a rhythm? This is the first read on whether embodiment survives the camera. *(Carries over from the wolf slice — swap body, retune config, swap the camera rig.)*
 2. **Add a living herd.** Boids-based grazing herd that ignores you. Does the world read as alive on its own?
 3. **Add awareness + flee.** Herd detects and flees. Does approaching become a *decision* — a read of the situation?
 4. **Add prey stamina + the feed — the persistence duel.** Prey outsprint you but tire when pressed; pursuits end in a feed or an abandoned chase. *This is the core loop — and the compression test (H14). Make-or-break.*
@@ -115,6 +120,8 @@ If step 4 is not engaging, stop. Steps past it will not save it.
 
 ## Risks specific to this prototype
 
+- **The RTS drift (new with the camera pivot).** An isometric view invites detachment — the player as commander of a unit rather than an animal in a body. Controls and feedback must keep pulling toward embodiment: direct control, body-anchored feedback, no unit-selection idioms. If testers start talking like generals, the camera is failing its job (H15/H18, Q20).
+- **Readability at camera distance.** Prey fatigue tells, stamina states, herd behavior, and terrain must all read from the isometric camera's height and angle, or the core commit/abandon decision goes blind. Grey-box tells that are too crude to read at distance would produce a false negative on the whole prototype.
 - **Pacing is the new #1 risk (H14).** Real persistence hunts take hours; ours must compress to minutes without reading as "jogging behind a deer." Chase/energy tuning is not a detail — it *is* the fun. Budget real iteration time on speeds, stamina curves, and recovery-denial rules.
 - **Human-shaped scope gravity.** A human avatar invites tools/fire/crafting expectations from testers and from us. The out-of-scope wall above exists for this.
 - **The world reading as dumb.** Even at prototype fidelity, a herd that flees stupidly breaks the "living world" promise. Spend here; it is a pillar, not polish.

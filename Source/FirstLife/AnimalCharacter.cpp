@@ -3,9 +3,13 @@
 #include "AnimalAIController.h"
 #include "AnimalConfig.h"
 #include "Camera/CameraComponent.h"
+#include "CollisionQueryParams.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/SkeletalMesh.h"
+#include "Engine/World.h"
 #include "FirstLife.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -51,6 +55,9 @@ namespace
 	// Grounded in predator prey-selection (Mech/Peterson; FitzGibbon): predators crop the
 	// substandard, prime adults escape. The spawner weights rolls near 1.0 (few stragglers).
 	constexpr float ConditionFloor = 0.78f;
+	constexpr float GroundSnapTraceUp = 20000.f;
+	constexpr float GroundSnapTraceDown = 50000.f;
+	constexpr float GroundSnapSlack = 3.f;
 }
 
 AAnimalCharacter::AAnimalCharacter()
@@ -91,8 +98,16 @@ AAnimalCharacter::AAnimalCharacter()
 	HeadMesh->SetRelativeLocation(FVector(4.f, 0.f, 74.f));
 	HeadMesh->SetRelativeScale3D(FVector(0.24f, 0.24f, 0.26f));
 
+	// ACharacter already owns a SkeletalMeshComponent named Mesh. Keep it dormant
+	// until a species config supplies imported art; the grey-box cubes remain the
+	// fallback path for data-only species.
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetHiddenInGame(true);
+	GetMesh()->SetVisibility(false, true);
+
 	if (CubeMesh.Succeeded())
 	{
+		GreyBoxMesh = CubeMesh.Object;
 		BodyMesh->SetStaticMesh(CubeMesh.Object);
 		HeadMesh->SetStaticMesh(CubeMesh.Object);
 	}
@@ -162,16 +177,85 @@ void AAnimalCharacter::ApplyConfig()
 	// Capsule first — mesh offsets are relative to its center. Spawns drop in from
 	// above (Z + slack), so a shorter species settles onto the floor, never inside it.
 	GetCapsuleComponent()->SetCapsuleSize(ResolvedConfig->CapsuleRadius, ResolvedConfig->CapsuleHalfHeight);
+	BodyMesh->SetRelativeRotation(FRotator::ZeroRotator);
+	HeadMesh->SetRelativeRotation(FRotator::ZeroRotator);
 	BodyMesh->SetRelativeLocation(ResolvedConfig->BodyOffset);
 	BodyMesh->SetRelativeScale3D(ResolvedConfig->BodyScale);
 	HeadMesh->SetRelativeLocation(ResolvedConfig->HeadOffset);
 	HeadMesh->SetRelativeScale3D(ResolvedConfig->HeadScale);
 
+	if (USkeletalMesh* VisualMesh = ResolvedConfig->VisualSkeletalMesh.LoadSynchronous())
+	{
+		USkeletalMeshComponent* CharacterMesh = GetMesh();
+		CharacterMesh->SetSkeletalMesh(VisualMesh);
+		CharacterMesh->SetRelativeLocation(ResolvedConfig->VisualMeshOffset);
+		CharacterMesh->SetRelativeRotation(ResolvedConfig->VisualMeshRotation);
+		CharacterMesh->SetRelativeScale3D(ResolvedConfig->VisualMeshScale);
+		CharacterMesh->SetHiddenInGame(false);
+		CharacterMesh->SetVisibility(true, true);
+
+		UClass* AnimClass = ResolvedConfig->VisualAnimClass.LoadSynchronous();
+		CharacterMesh->SetAnimInstanceClass(AnimClass);
+
+		BodyMesh->SetHiddenInGame(true);
+		HeadMesh->SetHiddenInGame(true);
+		BodyMesh->SetVisibility(false, true);
+		HeadMesh->SetVisibility(false, true);
+
+		UE_LOG(LogFirstLife, Log, TEXT("%s: using visual skeletal mesh %s"),
+			*GetName(), *ResolvedConfig->VisualSkeletalMesh.ToSoftObjectPath().ToString());
+	}
+	else
+	{
+		if (!ResolvedConfig->VisualSkeletalMesh.IsNull())
+		{
+			UE_LOG(LogFirstLife, Warning, TEXT("%s: failed to load visual skeletal mesh %s; using grey-box fallback"),
+				*GetName(), *ResolvedConfig->VisualSkeletalMesh.ToSoftObjectPath().ToString());
+		}
+
+		GetMesh()->SetSkeletalMesh(nullptr);
+		GetMesh()->SetHiddenInGame(true);
+		GetMesh()->SetVisibility(false, true);
+
+		if (UStaticMesh* VisualStaticMesh = ResolvedConfig->VisualStaticMesh.LoadSynchronous())
+		{
+			BodyMesh->SetStaticMesh(VisualStaticMesh);
+			BodyMesh->SetRelativeLocation(ResolvedConfig->VisualMeshOffset);
+			BodyMesh->SetRelativeRotation(ResolvedConfig->VisualMeshRotation);
+			BodyMesh->SetRelativeScale3D(ResolvedConfig->VisualMeshScale);
+			BodyMesh->SetHiddenInGame(false);
+			BodyMesh->SetVisibility(true, true);
+
+			HeadMesh->SetHiddenInGame(true);
+			HeadMesh->SetVisibility(false, true);
+
+			UE_LOG(LogFirstLife, Log, TEXT("%s: using visual static mesh %s"),
+				*GetName(), *ResolvedConfig->VisualStaticMesh.ToSoftObjectPath().ToString());
+		}
+		else
+		{
+			if (!ResolvedConfig->VisualStaticMesh.IsNull())
+			{
+				UE_LOG(LogFirstLife, Warning, TEXT("%s: failed to load visual static mesh %s; using grey-box fallback"),
+					*GetName(), *ResolvedConfig->VisualStaticMesh.ToSoftObjectPath().ToString());
+			}
+
+			BodyMesh->SetStaticMesh(GreyBoxMesh);
+			HeadMesh->SetStaticMesh(GreyBoxMesh);
+			BodyMesh->SetHiddenInGame(false);
+			HeadMesh->SetHiddenInGame(false);
+			BodyMesh->SetVisibility(true, true);
+			HeadMesh->SetVisibility(true, true);
+		}
+	}
+
 	// Remember the species' neutral head/body positions: the posture telegraph in Tick()
 	// is expressed as a displacement from these, so a short reindeer and a tall human
 	// each drop their nose relative to their own silhouette, not a shared constant.
-	HeadBaseOffset = ResolvedConfig->HeadOffset;
-	BodyBaseOffset = ResolvedConfig->BodyOffset;
+	HeadBaseOffset = HeadMesh->GetRelativeLocation();
+	BodyBaseOffset = BodyMesh->GetRelativeLocation();
+	HeadBaseRotation = HeadMesh->GetRelativeRotation();
+	BodyBaseRotation = BodyMesh->GetRelativeRotation();
 
 	// Tint both boxes via a dynamic instance of the engine BasicShapeMaterial
 	// (exposes a "Color" vector parameter). One MID per component: they share the
@@ -183,6 +267,8 @@ void AAnimalCharacter::ApplyConfig()
 			Tint->SetVectorParameterValue(TEXT("Color"), ResolvedConfig->BodyColor);
 		}
 	}
+
+	SnapToGround();
 }
 
 void AAnimalCharacter::Tick(float DeltaTime)
@@ -245,9 +331,56 @@ void AAnimalCharacter::Tick(float DeltaTime)
 	// Roll only bites on collapse; ease both boxes so the grey-box visibly buckles over.
 	const float RollNow = FMath::FInterpTo(
 		BodyMesh->GetRelativeRotation().Roll, RollTarget, DeltaTime, InterpSpeed);
-	const FRotator PostureRot(0.f, 0.f, RollNow);
-	BodyMesh->SetRelativeRotation(PostureRot);
-	HeadMesh->SetRelativeRotation(PostureRot);
+	BodyMesh->SetRelativeRotation(BodyBaseRotation + FRotator(0.f, 0.f, RollNow));
+	HeadMesh->SetRelativeRotation(HeadBaseRotation + FRotator(0.f, 0.f, RollNow));
+}
+
+void AAnimalCharacter::SnapToGround()
+{
+	UWorld* World = GetWorld();
+	const UCapsuleComponent* Capsule = GetCapsuleComponent();
+	if (!World || !Capsule)
+	{
+		return;
+	}
+
+	const FVector Location = GetActorLocation();
+	const FVector Start = Location + FVector(0.f, 0.f, GroundSnapTraceUp);
+	const FVector End = Location - FVector(0.f, 0.f, GroundSnapTraceDown);
+
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(AnimalGroundSnap), /*bTraceComplex=*/true);
+	Params.AddIgnoredActor(this);
+
+	FCollisionObjectQueryParams ObjectParams;
+	ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
+
+	FHitResult Hit;
+	if (World->LineTraceSingleByObjectType(Hit, Start, End, ObjectParams, Params))
+	{
+		const float CapsuleHalfHeight = Capsule->GetScaledCapsuleHalfHeight();
+		SetActorLocation(
+			FVector(Location.X, Location.Y, Hit.ImpactPoint.Z + CapsuleHalfHeight + GroundSnapSlack),
+			false, nullptr, ETeleportType::TeleportPhysics);
+	}
+	else
+	{
+		UE_LOG(LogFirstLife, Warning,
+			TEXT("%s: ground snap found no WorldStatic surface under spawn; keeping Z=%0.1f"),
+			*GetName(), Location.Z);
+	}
+}
+
+void AAnimalCharacter::SetRuntimeConfig(const UAnimalConfig* InConfig)
+{
+	if (!InConfig)
+	{
+		return;
+	}
+
+	ConfigOverride = InConfig;
+	ResolvedConfig = InConfig;
+	Condition = 1.f;
+	ApplyConfig();
 }
 
 void AAnimalCharacter::SetDowned(bool bInDowned)

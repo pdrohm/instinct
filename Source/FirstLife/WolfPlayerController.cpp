@@ -1,6 +1,7 @@
 #include "WolfPlayerController.h"
 
 #include "AnimalCharacter.h"
+#include "AnimalConfig.h"
 #include "EnhancedInputComponent.h"
 #include "FirstLifeHUD.h"
 #include "EnhancedInputSubsystems.h"
@@ -45,6 +46,17 @@ void AWolfPlayerController::SetupInputComponent()
 	{
 		Input->BindAction(SpeciesActions[Index], ETriggerEvent::Started, this,
 			&AWolfPlayerController::HandleSelectSpecies, Index);
+	}
+}
+
+void AWolfPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	if (AAnimalCharacter* Animal = Cast<AAnimalCharacter>(InPawn))
+	{
+		EnsureSpeciesBodyConfigs();
+		Animal->SetRuntimeConfig(HumanBodyConfig);
 	}
 }
 
@@ -107,6 +119,17 @@ void AWolfPlayerController::BuildInputObjects()
 AAnimalCharacter* AWolfPlayerController::GetInhabitedAnimal() const
 {
 	return Cast<AAnimalCharacter>(GetPawn());
+}
+
+void AWolfPlayerController::EnsureSpeciesBodyConfigs()
+{
+	if (!HumanBodyConfig)
+	{
+		HumanBodyConfig = UAnimalConfig::CreateHumanConfig(this);
+		DeerBodyConfig = UAnimalConfig::CreateReindeerConfig(this);
+		WolfBodyConfig = UAnimalConfig::CreateWolfConfig(this);
+		BigCatBodyConfig = UAnimalConfig::CreateTigerConfig(this);
+	}
 }
 
 void AWolfPlayerController::HandleMove(const FInputActionValue& Value)
@@ -185,6 +208,18 @@ void AWolfPlayerController::HandleSelectSpecies(const FInputActionValue& /*Value
 		if (USpeciesPerceptionComponent* Perception = Animal->GetPerception())
 		{
 			Perception->SetActiveProfileIndex(ProfileIndex);
+		}
+
+		EnsureSpeciesBodyConfigs();
+		const UAnimalConfig* const BodyConfigs[] = {
+			HumanBodyConfig.Get(),
+			DeerBodyConfig.Get(),
+			WolfBodyConfig.Get(),
+			BigCatBodyConfig.Get(),
+		};
+		if (ProfileIndex >= 0 && ProfileIndex < UE_ARRAY_COUNT(BodyConfigs))
+		{
+			Animal->SetRuntimeConfig(BodyConfigs[ProfileIndex]);
 		}
 	}
 }

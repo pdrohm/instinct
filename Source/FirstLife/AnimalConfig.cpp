@@ -1,5 +1,22 @@
 #include "AnimalConfig.h"
 
+#include "Animation/AnimInstance.h"
+#include "Engine/SkeletalMesh.h"
+#include "Engine/StaticMesh.h"
+
+UAnimalConfig* UAnimalConfig::CreateHumanConfig(UObject* Outer)
+{
+	UAnimalConfig* Config = NewObject<UAnimalConfig>(Outer);
+
+	Config->VisualStaticMesh = TSoftObjectPtr<UStaticMesh>(
+		FSoftObjectPath(TEXT("/Game/Animals/Man/StaticMeshes/asian_old_man_warrior_with_cold_weapon.asian_old_man_warrior_with_cold_weapon")));
+	Config->VisualMeshOffset = FVector(0.f, 0.f, -90.f);
+	Config->VisualMeshRotation = FRotator(0.f, -90.f, 0.f);
+	Config->VisualMeshScale = FVector(1.f, 1.f, 1.f);
+
+	return Config;
+}
+
 UAnimalConfig* UAnimalConfig::CreateReindeerConfig(UObject* Outer)
 {
 	// All values FIRST-PASS GUESSES from docs/research/HERD_AND_PREY.md tuning
@@ -61,6 +78,12 @@ UAnimalConfig* UAnimalConfig::CreateReindeerConfig(UObject* Outer)
 	// ochre — hunter vs herd must separate at a glance before real meshes exist.
 	Config->BodyColor = FLinearColor(0.16f, 0.13f, 0.10f);
 
+	Config->VisualSkeletalMesh = TSoftObjectPtr<USkeletalMesh>(
+		FSoftObjectPath(TEXT("/Game/Animals/Deer/Deer_001.Deer_001")));
+	Config->VisualMeshOffset = FVector(0.f, 0.f, -72.f);
+	Config->VisualMeshRotation = FRotator(0.f, -90.f, 0.f);
+	Config->VisualMeshScale = FVector(1.f, 1.f, 1.f);
+
 	return Config;
 }
 
@@ -119,6 +142,78 @@ UAnimalConfig* UAnimalConfig::CreateSaigaConfig(UObject* Outer)
 	// Pale sandy summer pelage: jumps off the dark terrain and contrasts hard with the
 	// near-black reindeer — the two herds separate at a glance.
 	Config->BodyColor = FLinearColor(0.62f, 0.55f, 0.40f);
+
+	return Config;
+}
+
+UAnimalConfig* UAnimalConfig::CreateTigerConfig(UObject* Outer)
+{
+	UAnimalConfig* Config = NewObject<UAnimalConfig>(Outer);
+
+	Config->Walk = FGaitSettings(180.f, 900.f, 2.f);
+	Config->Jog = FGaitSettings(470.f, 1300.f, -3.f);
+	Config->Sprint = FGaitSettings(980.f, 2600.f, -32.f);
+	Config->PreferredGait = ELocomotionGait::Jog;
+
+	Config->TurnRateDegPerSecond = 460.f;
+	Config->BrakingDeceleration = 2000.f;
+	Config->MaxStamina = 75.f;
+	Config->RestRegenPerSecond = 16.f;
+	Config->ExhaustionRecoveryFraction = 0.45f;
+	Config->NutritionValue = 0.f;
+
+	Config->CapsuleRadius = 52.f;
+	Config->CapsuleHalfHeight = 62.f;
+	Config->BodyOffset = FVector(0.f, 0.f, 2.f);
+	Config->BodyScale = FVector(1.55f, 0.42f, 0.48f);
+	Config->HeadOffset = FVector(92.f, 0.f, 34.f);
+	Config->HeadScale = FVector(0.42f, 0.28f, 0.28f);
+	Config->BodyColor = FLinearColor(0.55f, 0.28f, 0.08f);
+
+	Config->VisualSkeletalMesh = TSoftObjectPtr<USkeletalMesh>(
+		FSoftObjectPath(TEXT("/Game/Animals/Tiger/Tiger_001.Tiger_001")));
+	Config->VisualMeshOffset = FVector(0.f, 0.f, -62.f);
+	Config->VisualMeshRotation = FRotator(0.f, -90.f, 0.f);
+	Config->VisualMeshScale = FVector(1.f, 1.f, 1.f);
+
+	return Config;
+}
+
+UAnimalConfig* UAnimalConfig::CreateWolfConfig(UObject* Outer)
+{
+	// First imported-animal visual hookup. The wolf uses the same generic pawn as
+	// every other body; these numbers are only a starter profile so the mesh can
+	// live in the simulation immediately.
+	UAnimalConfig* Config = NewObject<UAnimalConfig>(Outer);
+
+	Config->Walk = FGaitSettings(220.f, 700.f, 4.f);
+	Config->Jog = FGaitSettings(560.f, 1100.f, -1.f);
+	Config->Sprint = FGaitSettings(850.f, 1800.f, -18.f);
+	Config->PreferredGait = ELocomotionGait::Jog;
+
+	Config->TurnRateDegPerSecond = 520.f;
+	Config->BrakingDeceleration = 1800.f;
+	Config->MaxStamina = 95.f;
+	Config->RestRegenPerSecond = 18.f;
+	Config->ExhaustionRecoveryFraction = 0.35f;
+
+	Config->NutritionValue = 0.f;
+
+	// Capsule approximates the imported quadruped. The grey-box silhouette remains
+	// filled as a fallback if the mesh is removed or not loaded.
+	Config->CapsuleRadius = 38.f;
+	Config->CapsuleHalfHeight = 58.f;
+	Config->BodyOffset = FVector(0.f, 0.f, 0.f);
+	Config->BodyScale = FVector(1.25f, 0.35f, 0.45f);
+	Config->HeadOffset = FVector(72.f, 0.f, 28.f);
+	Config->HeadScale = FVector(0.34f, 0.22f, 0.24f);
+	Config->BodyColor = FLinearColor(0.12f, 0.12f, 0.12f);
+
+	Config->VisualSkeletalMesh = TSoftObjectPtr<USkeletalMesh>(
+		FSoftObjectPath(TEXT("/Game/Animals/Wolf/SkeletalMeshes/low_poly_wolf.low_poly_wolf")));
+	Config->VisualMeshOffset = FVector(0.f, 0.f, -58.f);
+	Config->VisualMeshRotation = FRotator(0.f, -90.f, 0.f);
+	Config->VisualMeshScale = FVector(1.f, 1.f, 1.f);
 
 	return Config;
 }

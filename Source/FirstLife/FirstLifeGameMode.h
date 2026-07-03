@@ -50,4 +50,10 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAnimalConfig> SaigaConfig;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimalConfig> WolfConfig;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimalConfig> TigerConfig;
 };

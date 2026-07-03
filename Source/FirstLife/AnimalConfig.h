@@ -29,6 +29,9 @@ class FIRSTLIFE_API UAnimalConfig : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
+	/** Builds the runtime player-body human profile. */
+	static UAnimalConfig* CreateHumanConfig(UObject* Outer);
+
 	/**
 	 * Builds the reindeer species as a fresh runtime instance — data-as-code, the
 	 * headless analog of a DA_Reindeer.uasset (ADR-E4: a species is a data asset on
@@ -54,6 +57,16 @@ public:
 	 * (Bekenov/Milner-Gulland saiga ecology) — playtest-tune, none is canon.
 	 */
 	static UAnimalConfig* CreateSaigaConfig(UObject* Outer);
+
+	/**
+	 * Builds the wolf visual/gameplay profile used to prove the imported-animal
+	 * mesh path. Same rule as every other species: one AAnimalCharacter, different
+	 * config data.
+	 */
+	static UAnimalConfig* CreateWolfConfig(UObject* Outer);
+
+	/** Builds the imported tiger visual/gameplay profile. */
+	static UAnimalConfig* CreateTigerConfig(UObject* Outer);
 
 	/** Stalk/recover gait. For the human: strong regen on the move. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomotion|Gaits")
@@ -164,4 +177,27 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Body")
 	FLinearColor BodyColor = FLinearColor(0.45f, 0.34f, 0.25f);
+
+	// -- Imported visual body --------------------------------------------------
+	// Optional art override for GATE-C. When set, AAnimalCharacter displays this
+	// skeletal mesh instead of the grey-box body/head cubes. Locomotion and AI stay
+	// entirely data/component driven; this is only presentation.
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
+	TSoftObjectPtr<class USkeletalMesh> VisualSkeletalMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
+	TSoftObjectPtr<class UStaticMesh> VisualStaticMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
+	TSoftClassPtr<class UAnimInstance> VisualAnimClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
+	FVector VisualMeshOffset = FVector(0.f, 0.f, -90.f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
+	FRotator VisualMeshRotation = FRotator(0.f, -90.f, 0.f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
+	FVector VisualMeshScale = FVector(1.f, 1.f, 1.f);
 };

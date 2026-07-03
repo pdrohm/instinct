@@ -6,6 +6,7 @@
 #include "WolfPlayerController.generated.h"
 
 class AAnimalCharacter;
+class UAnimalConfig;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
@@ -28,11 +29,14 @@ class FIRSTLIFE_API AWolfPlayerController : public APlayerController
 
 protected:
 	virtual void SetupInputComponent() override;
+	virtual void OnPossess(APawn* InPawn) override;
 
 private:
 	void BuildInputObjects();
 
 	AAnimalCharacter* GetInhabitedAnimal() const;
+
+	void EnsureSpeciesBodyConfigs();
 
 	void HandleMove(const FInputActionValue& Value);
 	void HandleLook(const FInputActionValue& Value);
@@ -72,6 +76,18 @@ private:
 	/** One action per species slot, mapped to keys 1-4. Debug switcher, not final UI. */
 	UPROPERTY()
 	TArray<TObjectPtr<UInputAction>> SpeciesActions;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimalConfig> HumanBodyConfig;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimalConfig> DeerBodyConfig;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimalConfig> WolfBodyConfig;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimalConfig> BigCatBodyConfig;
 
 	/** The agent we handed back to its own brain, so P can reclaim it. */
 	TWeakObjectPtr<AAnimalCharacter> ReleasedAnimal;

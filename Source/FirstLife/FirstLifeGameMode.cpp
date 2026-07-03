@@ -45,6 +45,21 @@ namespace
 		FVector(-2200.f, -50.f, 120.f),
 	};
 
+	/**
+	 * Imported animal mesh validation: a small wolf pair using the same generic
+	 * animal pawn and AI brain. This is intentionally a normal species config, not
+	 * a bespoke wolf class, so future imported animals follow the same route.
+	 */
+	const FVector WolfSpawns[] = {
+		FVector(-600.f, -1900.f, 120.f),
+		FVector(-900.f, -2250.f, 120.f),
+	};
+
+	const FVector TigerSpawns[] = {
+		FVector(150.f, -900.f, 120.f),
+		FVector(450.f, -1150.f, 120.f),
+	};
+
 	// Worst body condition a spawned prey can roll (H14 straggler). Matches the character's
 	// clamp; the roll's Square(FRand) weighting keeps most of the herd near prime. First-pass.
 	constexpr float StragglerFloor = 0.78f;
@@ -65,9 +80,13 @@ void AFirstLifeGameMode::BeginPlay()
 	// lives in the factories, none here. Two configs → two herds that never mix.
 	ReindeerConfig = UAnimalConfig::CreateReindeerConfig(this);
 	SaigaConfig = UAnimalConfig::CreateSaigaConfig(this);
+	WolfConfig = UAnimalConfig::CreateWolfConfig(this);
+	TigerConfig = UAnimalConfig::CreateTigerConfig(this);
 
 	SpawnHerd(ReindeerConfig, ReindeerSpawns);
 	SpawnHerd(SaigaConfig, SaigaSpawns);
+	SpawnHerd(WolfConfig, WolfSpawns);
+	SpawnHerd(TigerConfig, TigerSpawns);
 }
 
 void AFirstLifeGameMode::SpawnHerd(const UAnimalConfig* Config, TArrayView<const FVector> Spawns)

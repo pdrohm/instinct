@@ -10,6 +10,7 @@ class UCameraComponent;
 class UHungerComponent;
 class ULocomotionComponent;
 class USpeciesPerceptionComponent;
+class UStaticMesh;
 class USpringArmComponent;
 class UStaminaComponent;
 class UStaticMeshComponent;
@@ -76,6 +77,9 @@ public:
 	 */
 	void SetConfigOverride(const UAnimalConfig* InConfig) { ConfigOverride = InConfig; }
 
+	/** Runtime species/body swap used by the 1-4 debug inhabitance switcher. */
+	void SetRuntimeConfig(const UAnimalConfig* InConfig);
+
 	/**
 	 * Inject this individual's body condition [~0.78..1.0] before BeginPlay (H14 straggler).
 	 * Predators crop the substandard: prime adults escape, the hunt succeeds against the one
@@ -134,8 +138,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Body")
 	TObjectPtr<UStaticMeshComponent> HeadMesh;
 
+	UPROPERTY(Transient)
+	TObjectPtr<UStaticMesh> GreyBoxMesh;
+
 private:
 	void ApplyConfig();
+	void SnapToGround();
 
 	/** Optional pre-BeginPlay species override (herd-spawn path). Wins over ConfigAsset. */
 	UPROPERTY(Transient)
@@ -155,4 +163,6 @@ private:
 	// live mesh offsets away from these and eases back toward them as fatigue clears.
 	FVector HeadBaseOffset = FVector::ZeroVector;
 	FVector BodyBaseOffset = FVector::ZeroVector;
+	FRotator HeadBaseRotation = FRotator::ZeroRotator;
+	FRotator BodyBaseRotation = FRotator::ZeroRotator;
 };

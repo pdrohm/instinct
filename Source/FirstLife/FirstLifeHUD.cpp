@@ -1,5 +1,6 @@
 #include "FirstLifeHUD.h"
 
+#include "AnimalAIController.h"
 #include "AnimalCharacter.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
@@ -81,6 +82,10 @@ namespace
 	// Freshness word thresholds.
 	constexpr float SpoorHotThreshold = 0.66f;
 	constexpr float SpoorWarmThreshold = 0.33f;
+
+	// --- Debug overlay (F1) --- Condition at/below this reads as a straggler (red, flagged) in
+	// the telemetry overlay, so the takeable individual is findable while tuning. First-pass.
+	constexpr float DebugStragglerThreshold = 0.88f;
 }
 
 void AFirstLifeHUD::DrawHUD()
@@ -267,6 +272,65 @@ void AFirstLifeHUD::DrawHUD()
 				DrawText(FString::Printf(TEXT("TRACKING · %s"), Heat), SpoorColor,
 					Origin.X - HuntTextHalfWidth, Origin.Y + SpoorArrowLength + 6.f, Font);
 			}
+		}
+	}
+
+	// Playtest telemetry overlay (F1): floating per-animal state so the owner can SEE the
+	// simulation while tuning (H14 feel-pass aid). Straggler condition is colour-coded so a
+	// laggard is findable at a glance. A dev tool — off by default, never shipping UI.
+	if (bShowDebugOverlay && World)
+	{
+		DrawText(TEXT("[F1] DEBUG — condition · stamina · state"),
+			FLinearColor(0.7f, 0.85f, 1.f), 16.f, 40.f, Font);
+
+		for (TActorIterator<AAnimalCharacter> It(World); It; ++It)
+		{
+			const AAnimalCharacter* A = *It;
+			if (!A || A == Animal)
+			{
+				continue;
+			}
+
+			// Project the head to screen; skip anyone behind the camera (Project Z <= 0).
+			const FVector Head = A->GetActorLocation() + FVector(0.f, 0.f, 90.f);
+			const FVector Screen = Project(Head);
+			if (Screen.Z <= 0.f)
+			{
+				continue;
+			}
+
+			const float Cond = A->GetCondition();
+			const bool bStraggler = Cond < DebugStragglerThreshold;
+			// Green = prime (escapes), red = straggler (the takeable target) — the whole point
+			// of the mechanic made legible for the tuning pass.
+			const FLinearColor CondColor = bStraggler
+				? FLinearColor(0.95f, 0.35f, 0.25f)
+				: FLinearColor(0.5f, 0.9f, 0.5f);
+
+			FString State = TEXT("graze");
+			if (A->IsDowned())
+			{
+				State = TEXT("DOWNED");
+			}
+			else if (const UStaminaComponent* St = A->GetStamina())
+			{
+				if (St->IsExhausted())
+				{
+					State = TEXT("BLOWN");
+				}
+				else if (const AAnimalAIController* Brain = Cast<AAnimalAIController>(A->GetController()))
+				{
+					if (Brain->GetHerdAlarm() > 0.5f)
+					{
+						State = TEXT("FLEE");
+					}
+				}
+			}
+
+			const float StamPct = A->GetStamina() ? A->GetStamina()->GetStaminaFraction() * 100.f : 0.f;
+			const FString Line = FString::Printf(TEXT("C%.2f  S%02.0f%%  %s%s"),
+				Cond, StamPct, *State, bStraggler ? TEXT("  <STRAGGLER>") : TEXT(""));
+			DrawText(Line, CondColor, Screen.X - 44.f, Screen.Y - 28.f, Font);
 		}
 	}
 }

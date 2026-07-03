@@ -2,6 +2,7 @@
 
 #include "AnimalCharacter.h"
 #include "EnhancedInputComponent.h"
+#include "FirstLifeHUD.h"
 #include "EnhancedInputSubsystems.h"
 #include "FirstLife.h"
 #include "InputAction.h"
@@ -39,6 +40,7 @@ void AWolfPlayerController::SetupInputComponent()
 	Input->BindAction(WalkAction, ETriggerEvent::Started, this, &AWolfPlayerController::HandleWalkStarted);
 	Input->BindAction(WalkAction, ETriggerEvent::Completed, this, &AWolfPlayerController::HandleWalkCompleted);
 	Input->BindAction(ToggleAction, ETriggerEvent::Started, this, &AWolfPlayerController::HandleTogglePossession);
+	Input->BindAction(DebugAction, ETriggerEvent::Started, this, &AWolfPlayerController::HandleToggleDebug);
 	for (int32 Index = 0; Index < SpeciesActions.Num(); ++Index)
 	{
 		Input->BindAction(SpeciesActions[Index], ETriggerEvent::Started, this,
@@ -59,6 +61,7 @@ void AWolfPlayerController::BuildInputObjects()
 	SprintAction = NewObject<UInputAction>(this, TEXT("IA_Sprint"));
 	WalkAction = NewObject<UInputAction>(this, TEXT("IA_Walk"));
 	ToggleAction = NewObject<UInputAction>(this, TEXT("IA_TogglePossession"));
+	DebugAction = NewObject<UInputAction>(this, TEXT("IA_ToggleDebug"));
 
 	// Move: X = right, Y = forward. Swizzle lifts a key's value into Y (forward axis).
 	const auto MapMoveKey = [this](const FKey& Key, bool bSwizzleToForward, bool bNegate)
@@ -88,6 +91,7 @@ void AWolfPlayerController::BuildInputObjects()
 	MappingContext->MapKey(SprintAction, EKeys::LeftShift);
 	MappingContext->MapKey(WalkAction, EKeys::LeftControl);
 	MappingContext->MapKey(ToggleAction, EKeys::P);
+	MappingContext->MapKey(DebugAction, EKeys::F1);
 
 	// Species perception debug switcher: 1 = human, 2 = deer, 3 = wolf, 4 = big cat.
 	const FKey SpeciesKeys[] = {EKeys::One, EKeys::Two, EKeys::Three, EKeys::Four};
@@ -161,6 +165,16 @@ void AWolfPlayerController::HandleWalkCompleted(const FInputActionValue& Value)
 	if (AAnimalCharacter* Animal = GetInhabitedAnimal())
 	{
 		Animal->SetWantsToWalk(false);
+	}
+}
+
+void AWolfPlayerController::HandleToggleDebug(const FInputActionValue& /*Value*/)
+{
+	// F1 flips the playtest telemetry overlay on the HUD — a feel-pass aid so the owner can
+	// read the simulation (straggler condition, stamina, flee state) while tuning.
+	if (AFirstLifeHUD* FirstLifeHUD = GetHUD<AFirstLifeHUD>())
+	{
+		FirstLifeHUD->ToggleDebugOverlay();
 	}
 }
 

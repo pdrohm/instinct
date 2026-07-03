@@ -1,5 +1,29 @@
 # Implementation Log — The First Life
 
+## Session 2026-07-03 (E) — Autonomous dev loop, iters 2–3: hunger + second species
+
+> Same loop (research subagent → implementation → authoritative build → commit), run back-to-back.
+
+- **Iter 2 — Hunger need (commit `08130e7`), the reason to hunt.** Physiologist subagent (Pontzer forager
+  energetics, Cahill starvation cascade) grounded the numbers. New `UHungerComponent` (tickless reservoir):
+  drains 0.083/s (~20 min empty — honest glycogen-buffer→decline ordering compressed ~144× from ~48 h).
+  Metabolism is data (ADR-E4): `UAnimalConfig` gained `MaxHunger`, `HungerDrainPerSecond`, `NutritionValue`
+  — nutrition lives on the EATEN animal, so a kill delivers the prey's `NutritionValue` (reindeer 85) with no
+  hardcoded feed constant. Starvation→stamina coupling (the death spiral): below well-fed thresholds hunger
+  scales stamina **regen** (floor 0.3, degrades first/hardest) and **capacity** (floor 0.5); `UHungerComponent`
+  owns the curves, `UStaminaComponent` consumes two opaque scalars via `SetHungerModifiers` ("one battery,
+  many consumers" preserved). Hunger is player-only pressure (drains/couples only while `IsPlayerControlled()`),
+  so the herd is never penalized. HUD gained an amber→red hunger bar.
+- **Iter 3 — Saiga antelope (commit `59d7d8c`), the anti-reindeer.** Wildlife subagent (Bekenov/Milner-Gulland)
+  grounded a contrasting prey. `CreateSaigaConfig` (pure data): dashes faster (900) and out-cruises the caribou
+  (580) but a shallow tank (80) that refills fast when still (24/s) — you win by tempo, not distance; asymmetry
+  held. Smaller/paler/twitchier silhouette. Nutrition 48 (~half a caribou = smaller meal). **Two configs became
+  two herds for free** (herd-mate discovery is by `GetConfig()` identity); GameMode spawns a tight 12-strong
+  saiga cluster via a new DRY `SpawnHerd(config, spawns)` helper.
+- **Next priority (queued):** the herd is still homogeneous, so no catchable straggler emerges — iter 4
+  (per-agent condition heterogeneity) is what actually makes H14 winnable, ahead of more breadth.
+- **Still unverified by a human hand.** GATE-A (feel-pass) remains the gate on all of it.
+
 ## Session 2026-07-03 (E) — Autonomous dev loop, iter 1: persistence-hunt core loop (H14)
 
 > First iteration of the owner-requested self-paced dev loop (research subagent → implementation subagent →

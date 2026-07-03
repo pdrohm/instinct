@@ -29,6 +29,19 @@ class FIRSTLIFE_API UAnimalConfig : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
+	/**
+	 * Builds the reindeer species as a fresh runtime instance — data-as-code, the
+	 * headless analog of a DA_Reindeer.uasset (ADR-E4: a species is a data asset on
+	 * the one pawn class, never a subclass). ALL reindeer tuning lives here; spawners
+	 * (GameMode) hold only positions. Values are first-pass guesses from
+	 * docs/research/HERD_AND_PREY.md — playtest-tune everything, none is canon.
+	 *
+	 * Energy philosophy (§4, Carrier/Liebenberg): every gait faster than the human's,
+	 * no positive-recovery moving gait — the pressed animal that never stands still
+	 * never regains its burst. That structural asymmetry IS the persistence hunt.
+	 */
+	static UAnimalConfig* CreateReindeerConfig(UObject* Outer);
+
 	/** Stalk/recover gait. For the human: strong regen on the move. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomotion|Gaits")
 	FGaitSettings Walk = FGaitSettings(200.f, 768.f, 10.f);

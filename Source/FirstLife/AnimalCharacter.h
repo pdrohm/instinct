@@ -53,6 +53,15 @@ public:
 
 	const UAnimalConfig* GetConfig() const { return ResolvedConfig; }
 
+	/**
+	 * Inject a resolved species config before BeginPlay, overriding ConfigAsset.
+	 * This is how one pawn class expresses many species without a subclass (ADR-E4):
+	 * the herd spawner hands each prey a runtime-built reindeer UAnimalConfig. Must be
+	 * called before BeginPlay resolves the config — use SpawnActorDeferred +
+	 * FinishSpawning. Passing nullptr is a no-op (the ConfigAsset path is used).
+	 */
+	void SetConfigOverride(const UAnimalConfig* InConfig) { ConfigOverride = InConfig; }
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -87,6 +96,10 @@ protected:
 
 private:
 	void ApplyConfig();
+
+	/** Optional pre-BeginPlay species override (herd-spawn path). Wins over ConfigAsset. */
+	UPROPERTY(Transient)
+	TObjectPtr<const UAnimalConfig> ConfigOverride;
 
 	UPROPERTY(Transient)
 	TObjectPtr<const UAnimalConfig> ResolvedConfig;

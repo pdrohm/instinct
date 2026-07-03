@@ -1,5 +1,81 @@
 # Implementation Log — The First Life
 
+## Session 2026-07-03 (D) — Slice 2: the living herd (P2 + A1), parallel fan-out (Chief Architect)
+
+> First implementation fan-out. Built build-order step 2 (the living reindeer herd, H5) via three parallel
+> subagents against a pinned interface contract (`SLICE2_CONTRACT.md`). Companion: `TASK_GRAPH.md` (P2/A1),
+> `docs/research/HERD_AND_PREY.md` (tuning), `docs/qa/H5_LIVING_HERD_PROTOCOL.md`.
+
+- **Interface contract pinned first (Chief Architect, inline):** two hazards in the existing code forced
+  decisions the parallel agents had to share. (1) Prey config can't be a `.uasset` (no headless binary
+  authoring) and `ConfigAsset` is protected → made the ONE serialised seam edit myself (ADR-E7): additive
+  `AAnimalCharacter::SetConfigOverride(const UAnimalConfig*)`, resolved before `ConfigAsset` in `BeginPlay`.
+  (2) `ResolveGait()` exposes only sprint/walk/preferred — no `SetWantsToJog`; the research table's guess of
+  reindeer `PreferredGait = Walk` would make the escape-cruise Jog (520) unreachable, silently breaking the
+  persistence-hunt energetics. **Fix with zero API change: reindeer `PreferredGait = Jog`; the brain asserts
+  `SetWantsToWalk(true)` to graze.** Both hazards + the gait-mapping table recorded in `SLICE2_CONTRACT.md`.
+- **P2 — `gameplay-locomotion-engineer` (owns `AnimalConfig.*`, `FirstLifeGameMode.*`):** `CreateReindeerConfig()`
+  factory (data-as-code, ADR-E4 — a `UAnimalConfig` instance, not a subclass) with the research tuning
+  values (all flagged first-pass); `AFirstLifeGameMode` now spawns a grazing herd of **8** reindeer via
+  `SpawnActorDeferred → SetConfigOverride → FinishSpawning → SpawnDefaultController`, one shared reindeer
+  config (UPROPERTY, GC-rooted) whose pointer identity doubles as the herd-mate discovery key. Replaced the
+  3 debug perception targets.
+- **A1 — `ai-engineer` (owns `AnimalAIController.*` + new `HerdBrain*`):** replaced the wander stub with a
+  herd brain — a pure per-agent `FHerdBrain` struct (`HerdBrain.*`, `HerdBrainTypes.h`) fed by one
+  world-truth sensing seam (`AnimalAIController::SenseHerd()`, marked for the future U4 Umwelt swap). One
+  Reynolds boids core, two weight profiles (graze/flee) blended by a per-agent alarm scalar; contagious
+  neighbour-to-neighbour flush (no global flag); predator-directed flight vector; FID as a decision surface
+  (approach directness × speed × group size × harassment memory); per-agent nervousness/reaction/weight
+  jitter → emergent straggler; breakable cohesion → herd splitting; graceful zero-herd-mate degradation (the
+  released player body runs the same brain, H7). Drives the pawn only via the intent API.
+- **QA — `qa-engineer` (owns `docs/qa/`):** wrote `H5_LIVING_HERD_PROTOCOL.md` (falsifiable do-nothing /
+  approach / pursuit / recovery phases with explicit PASS/FAIL signals) and `SLICE2_SMOKE_CHECK.md`. Source
+  untouched. Its independent top-3 defects-to-watch corroborated the contract's risk surface (jog-cruise
+  grazing, global-vs-contagious flush, missing straggler).
+- **Integration:** `cpp-reviewer` pass → **MERGE-WITH-FIXES**, no CRITICAL/HIGH, no lane violations, no
+  ADR-E4/E5 breaks, gait contract verified correct end-to-end. Fixed the one MEDIUM myself (promoted three
+  hardcoded brain constants into `FHerdBrainConfig`; derived the alert-band floor from `CalmAlarmThreshold`
+  to kill a silent duplication — DoD "all tuning lives in data"). Two LOW nits logged as debt below.
+- **Compile status:** `Result: Succeeded` (FirstLifeEditor, Mac Development), both before and after the
+  MEDIUM fix. Main is green.
+- **Debt logged (LOW, non-reachable defensive nits):** (1) `AnimalAIController::OnPossess` guards `InPawn`
+  for the brain init then logs `InPawn->GetName()` unguarded — engine asserts non-null before `OnPossess`,
+  so unreachable; drop the redundant ternary or guard the log. (2) `SenseHerd` would misclassify an
+  `AAnimalCharacter` whose `BeginPlay` hasn't run (`GetConfig()==nullptr`) as a threat — not reachable with
+  synchronous spawn; worth a comment if async/streamed spawning is ever added.
+- **Not built (scope wall held):** no hunger, no scent gameplay, no Umwelt/perception code, no prey-vs-prey
+  feed (that's P4/H14), no mesh. Reindeer numbers are first-pass guesses staged for the owner's tuning pass.
+
+---
+
+## Session 2026-07-03 (C) — Orchestration bootstrap (Chief Architect)
+
+> No gameplay code written this session — by design. Established the coordination layer and cleared the
+> path for parallel delegation. Companion: `PROJECT_STATUS.md`, `TASK_GRAPH.md`, `CURRENT_SPRINT.md`,
+> `ARCHITECTURE_DECISIONS.md`, `AGENTS/`.
+
+- **Analysis:** Full read of all design docs + a ground-truth C++ architecture map (delegated). Confirmed:
+  species = two data assets on one `AAnimalCharacter` (D13 honored); possession seam clean & demonstrated
+  (strong H7 evidence); AI is a wander stub; the belief store exists only in embryo (Absent/Tracked,
+  player-body-only) inside `USpeciesPerceptionComponent`; `ScentFieldSubsystem` is a flat FIFO array; zero
+  networking.
+- **Delegated in parallel (all non-code, safe):** (1) code-architecture map; (2) perception design-consistency
+  audit → produced the 4 GATE-B sign-off blockers; (3) herd/prey research → `docs/research/HERD_AND_PREY.md`
+  (recommends **reindeer**, with a sourced tuning table).
+- **Key finding:** the bottleneck is **validation & sign-off, not engineering capacity.** The next code is
+  gated on a hands-on feel-pass (GATE-A), a perception sign-off (GATE-B), and a mesh import (GATE-C) — none
+  of which a headless agent can do. Available parallel work today is research + docs, not implementation.
+- **Hygiene fix (only code-adjacent change):** removed the `AndroidFileServer` block incl. a checked-in
+  `SecurityToken` from `Config/DefaultEngine.ini` (Desktop-only project; template leftover). Config-only.
+- **Created:** `PROJECT_STATUS.md`, `TASK_GRAPH.md` (the DAG with gates/tracks/critical path),
+  `CURRENT_SPRINT.md`, `ARCHITECTURE_DECISIONS.md` (ADR-E1…E9), and the `AGENTS/` roster (11 specialists,
+  disjoint ownership matrix, ready-to-paste prompts).
+- **Compile status:** unchanged — no source `.cpp/.h` touched; the config edit does not affect the build.
+- **Remaining (owner action):** resolve GATE-A/B/C (see `CURRENT_SPRINT.md`); on each clear, the pre-staged
+  agent fan-out fires.
+
+---
+
 ## Session 2026-07-03 (B) — Locomotion becomes a core pillar
 
 > Full architecture: `docs/LOCOMOTION.md`. Decision record: `docs/DESIGN_DECISIONS.md` D13.

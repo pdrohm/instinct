@@ -101,7 +101,9 @@ void AAnimalCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ResolvedConfig = ConfigAsset.LoadSynchronous();
+	// Herd-spawn path injects a runtime species config (ADR-E4: one pawn, many species);
+	// otherwise resolve the per-instance ConfigAsset (defaults to DA_Human).
+	ResolvedConfig = ConfigOverride ? ConfigOverride.Get() : ConfigAsset.LoadSynchronous();
 	if (!ResolvedConfig)
 	{
 		ResolvedConfig = GetDefault<UAnimalConfig>();

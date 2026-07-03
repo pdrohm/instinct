@@ -35,8 +35,15 @@ perception/cognition architecture. The next code worth writing is gated behind t
 
 ## 3. What is STUBBED / placeholder (known, intentional)
 
-- **AI brain** — `AAnimalAIController` is a random-wander stub. No behavior tree, blackboard, or state machine. No perception hookup. By design for Slice 1.
-- **Herd** — does not exist. GameMode spawns 3 hardcoded wander targets purely so the perception switcher has something to see; explicitly **not** the herd (H5).
+- **AI brain** — ✅ **Slice 2 built (2026-07-03 D).** `AAnimalAIController` now runs a herd brain: a pure
+  per-agent `FHerdBrain` (boids graze/flee + contagious flush + FID decision surface + emergent straggler)
+  fed by proximity sensing (`SenseHerd()`, the future U4/Umwelt seam). No behavior tree/blackboard — a
+  hand-rolled alarm-scalar state machine, which is enough at this scale. Unverified by play; numbers are
+  first-pass guesses awaiting the owner's tuning pass.
+- **Herd** — ✅ **Slice 2 built (2026-07-03 D).** `AFirstLifeGameMode` spawns 8 reindeer `AAnimalCharacter`s
+  (runtime `CreateReindeerConfig()` — data, not a subclass) via the `SetConfigOverride` seam; they graze,
+  flush contagiously, and flee as a group. Replaces the 3 debug wander targets. Grey-box cubes; H5 validated
+  in code, not yet by a human hand.
 - **Prey, hunger, scent-as-gameplay, day/night, weather, injury, combat, crafting, multiplayer** — none exist. Scope wall held.
 - **Meshes** — engine-cube grey-box body/head. The believable human mesh is unacquired (binary-asset GUI work).
 - **Perception post-process** — placeholder global tint/vignette; directional effects need a post-process material (binary asset).
@@ -90,7 +97,9 @@ The project cannot productively spawn *implementation* agents until these clear.
 
 ## 8. Roadmap position
 
-Roadmap **Stage 1 (Prototype — "The First Life")**, build-order **step 1 authored** (human + stamina + camera),
-**step 2 (living herd) is next**. Steps 3–5 (awareness/flee, prey stamina + feed, hunger) follow. The
+Roadmap **Stage 1 (Prototype — "The First Life")**, build-order **steps 1–2 authored** (human + stamina +
+camera; living reindeer herd with graze/flee brain, 2026-07-03 D). **Step 3 (awareness tuning) is next** —
+though P2's brain already includes flee/FID, so P3 is now largely a feel-tuning pass rather than net-new
+construction. Steps 4–5 (prey stamina + feed, hunger) follow. The
 persistence-hunt core loop (step 4) is the make-or-break (H14). Perception/cognition (the Umwelt) is a
 parallel design-gated track, not on the prototype's critical play-loop path.

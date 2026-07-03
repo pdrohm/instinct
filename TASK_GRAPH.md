@@ -34,8 +34,8 @@ Three gates dominate the graph. Almost every implementation node hangs off one o
 🔒 GATE-A (feel-pass, tune DA_Human)              🔒 GATE-C (acquire mannequin) ──┐
         │                                                                        │
         ▼                                                                        ▼
-🟡 P2 Living herd (boids graze) ──► 🟡 P3 Awareness + flee ──► 🟡 P4 Prey stamina + the feed ──► 🟡 P5 Hunger clock
-      (H5)                              (H5)                       *** CORE LOOP, H14 ***           (H1)
+✅ P2 Living herd (boids graze+flee) ──► 🟡 P3 Awareness tuning ──► 🟡 P4 Prey stamina + the feed ──► 🟡 P5 Hunger clock
+      (H5, BUILT — green)               (H5)                       *** CORE LOOP, H14 ***           (H1)
 ```
 
 - **P2..P5 depend on GATE-A** (no point tuning prey against an unvalidated player economy) and consume the herd research (R1). They are the make-or-break; **P4 is the whole prototype's crux.**
@@ -59,8 +59,8 @@ Three gates dominate the graph. Almost every implementation node hangs off one o
 ### Track A — AI brains (parallel once herd exists; independent of GATE-B until U4)
 
 ```
-🟡 A1 Replace wander stub with a herd state machine (graze/alert/flee/return)  ◄── depends on P2 shape
-        └──► A2 Prey decision tuning (FID, panic, recovery)  ◄── consumes R1
+✅ A1 Herd brain (graze/alert/flee/return, boids + contagious flush + FID + straggler)  [BUILT — green]
+        └──► 🟡 A2 Prey decision tuning (FID, panic, recovery)  ◄── consumes R1 (now a feel-tuning pass on live numbers)
         └──► U4 (AI reads Umwelt)  ◄── also needs U1
 ```
 

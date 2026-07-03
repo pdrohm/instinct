@@ -147,16 +147,16 @@ void AWolfPlayerController::HandleTogglePossession(const FInputActionValue& Valu
 	}
 	else if (ReleasedAnimal.IsValid())
 	{
-		AAnimalCharacter* Animal = ReleasedAnimal.Get();
-		AController* PreviousBrain = Animal->GetController();
+		AAnimalCharacter* ReclaimedAnimal = ReleasedAnimal.Get();
+		AController* PreviousBrain = ReclaimedAnimal->GetController();
 
-		Possess(Animal);
+		Possess(ReclaimedAnimal);
 		ReleasedAnimal = nullptr;
 
 		if (PreviousBrain && PreviousBrain != this)
 		{
 			PreviousBrain->Destroy();
 		}
-		UE_LOG(LogFirstLife, Log, TEXT("Possession reclaimed: player inhabits %s"), *Animal->GetName());
+		UE_LOG(LogFirstLife, Log, TEXT("Possession reclaimed: player inhabits %s"), *ReclaimedAnimal->GetName());
 	}
 }

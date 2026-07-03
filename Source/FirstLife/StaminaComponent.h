@@ -27,6 +27,13 @@ public:
 	/** Apply this frame's signed energy rate (units/s): regen positive, drain negative. */
 	void Update(float RatePerSecond, float DeltaSeconds);
 
+	/**
+	 * The feed beat of the hunt (H14): running a prey down and eating it refills the
+	 * hunter's reserve to full and clears the exhaustion latch. This is the payoff that
+	 * closes the persistence loop — the energy you spent chasing comes back on the kill.
+	 */
+	void Refill();
+
 	UFUNCTION(BlueprintPure, Category = "Stamina")
 	float GetStamina() const { return Current; }
 

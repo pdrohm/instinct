@@ -4,6 +4,7 @@
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/Font.h"
+#include "HuntSubsystem.h"
 #include "LocomotionComponent.h"
 #include "SpeciesPerceptionComponent.h"
 #include "SpeciesPerceptionProfile.h"
@@ -36,6 +37,17 @@ namespace
 	constexpr float BarHeight = 16.f;
 	constexpr float BarBottomMargin = 64.f;
 	constexpr float LowStaminaFraction = 0.3f;
+
+	// --- Hunt readout layout (H14), top-center block ---
+	constexpr float HuntBlockTopMargin = 24.f;
+	// Rough half-width of the text so the line reads centered without measuring glyphs.
+	constexpr float HuntTextHalfWidth = 90.f;
+	// How long the "DOWNED — fed" banner lingers after a kill before the HUD hides it, s.
+	constexpr float KillBannerSeconds = 4.f;
+	// The "closing in" catch-progress bar, drawn under the live hunt clock.
+	constexpr float HuntBarWidth = 200.f;
+	constexpr float HuntBarHeight = 8.f;
+	constexpr float HuntBarTopGap = 20.f;
 }
 
 void AFirstLifeHUD::DrawHUD()
@@ -106,6 +118,40 @@ void AFirstLifeHUD::DrawHUD()
 				Perception->GetActiveProfileIndex() + 1,
 				Perception->GetProfileCount());
 			DrawText(SpeciesLine, FLinearColor(0.95f, 0.9f, 0.7f), 16.f, 16.f, Font);
+		}
+	}
+
+	// Hunt readout (H14): the loop's whole state in a top-center block — the kill payoff
+	// banner just after a catch, else the live run clock and a "closing in" catch meter.
+	const UWorld* World = GetWorld();
+	if (const UHuntSubsystem* Hunt = World ? World->GetSubsystem<UHuntSubsystem>() : nullptr)
+	{
+		const float CenterX = Canvas->SizeX * 0.5f;
+
+		if (Hunt->GetSecondsSinceLastKill() < KillBannerSeconds)
+		{
+			// Feed beat landed: flash the outcome + how long that run took (the H14 metric).
+			const FString Banner = FString::Printf(
+				TEXT("DOWNED — fed   (hunt: %.1fs)"), Hunt->GetLastKillSeconds());
+			DrawText(Banner, FLinearColor(0.4f, 0.9f, 0.45f),
+				CenterX - HuntTextHalfWidth, HuntBlockTopMargin, Font);
+		}
+		else if (Hunt->IsHuntActive())
+		{
+			const FString Clock = FString::Printf(TEXT("HUNT  %.1fs"), Hunt->GetHuntElapsedSeconds());
+			DrawText(Clock, FLinearColor(0.95f, 0.85f, 0.5f),
+				CenterX - HuntTextHalfWidth, HuntBlockTopMargin, Font);
+
+			// Closing-in meter: how far the hunter has held the catch window on any prey.
+			const float Progress = Hunt->GetBestCatchProgress();
+			if (Progress > 0.f)
+			{
+				const float BarX = CenterX - HuntBarWidth * 0.5f;
+				const float BarY = HuntBlockTopMargin + HuntBarTopGap;
+				DrawRect(FLinearColor(0.f, 0.f, 0.f, 0.55f),
+					BarX - 2.f, BarY - 2.f, HuntBarWidth + 4.f, HuntBarHeight + 4.f);
+				DrawRect(FLinearColor(0.9f, 0.35f, 0.2f), BarX, BarY, HuntBarWidth * Progress, HuntBarHeight);
+			}
 		}
 	}
 }

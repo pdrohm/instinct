@@ -39,5 +39,21 @@ UAnimalConfig* UAnimalConfig::CreateReindeerConfig(UObject* Outer)
 	Config->RestRegenPerSecond = 18.f;
 	Config->ExhaustionRecoveryFraction = 0.3f;
 
+	// Grey-box quadruped: a long horizontal torso at ~110 cm shoulder height with
+	// the head carried forward and high — at isometric distance the horizontal
+	// silhouette vs the human's vertical one is the entire species read. Capsule
+	// stays a vertical cylinder (CharacterMovement requirement); it wraps the
+	// torso mass, not the head.
+	Config->CapsuleRadius = 55.f;
+	Config->CapsuleHalfHeight = 72.f;
+	Config->BodyOffset = FVector(0.f, 0.f, 8.f);
+	Config->BodyScale = FVector(1.7f, 0.5f, 0.62f);
+	Config->HeadOffset = FVector(105.f, 0.f, 48.f);
+	Config->HeadScale = FVector(0.42f, 0.22f, 0.3f);
+
+	// Caribou pelage: grey-brown, clearly darker and cooler than the human's warm
+	// ochre — hunter vs herd must separate at a glance before real meshes exist.
+	Config->BodyColor = FLinearColor(0.16f, 0.13f, 0.10f);
+
 	return Config;
 }

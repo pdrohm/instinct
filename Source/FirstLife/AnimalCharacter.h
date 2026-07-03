@@ -30,6 +30,17 @@ class FIRSTLIFE_API AAnimalCharacter : public ACharacter
 public:
 	AAnimalCharacter();
 
+	/**
+	 * Down this animal — the terminal result of a successful catch (H14). Only ever
+	 * called by UHuntSubsystem on prey, never on the player: downing is not a status
+	 * effect the body toggles on itself, it is the outcome the hunt inflicts. A downed
+	 * pawn's brain goes silent (see AAnimalAIController::Tick) and its body collapses
+	 * via the posture telegraph in Tick().
+	 */
+	void SetDowned(bool bInDowned);
+
+	bool IsDowned() const { return bDowned; }
+
 	/** Intent, not state: sprint only actually happens while stamina allows (H2). */
 	void SetWantsToSprint(bool bInWantsToSprint);
 
@@ -64,6 +75,15 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	/**
+	 * Drives the CONTINUOUS posture telegraph (H14). The head-drop reads fatigue off
+	 * stamina every frame (1 − staminaFraction) so a tiring animal visibly sinks its
+	 * nose toward the ground — the readable "this one is blowing" tell that precedes the
+	 * catch window — and a downed body buckles and rolls to the floor. Everything eases
+	 * via FInterpTo so posture flows rather than pops.
+	 */
+	virtual void Tick(float DeltaTime) override;
 
 	/**
 	 * Species definition. Defaults to /Game/Agents/DA_Human; when the asset does not
@@ -103,4 +123,13 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<const UAnimalConfig> ResolvedConfig;
+
+	/** True once caught. Never set on the player — see SetDowned(). */
+	bool bDowned = false;
+
+	// Base posture, captured from the resolved config in ApplyConfig() so the telegraph
+	// is relative to whatever species silhouette is active (ADR-E4). Tick() lerps the
+	// live mesh offsets away from these and eases back toward them as fatigue clears.
+	FVector HeadBaseOffset = FVector::ZeroVector;
+	FVector BodyBaseOffset = FVector::ZeroVector;
 };

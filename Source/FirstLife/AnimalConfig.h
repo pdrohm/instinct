@@ -87,4 +87,42 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stamina", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float ExhaustionRecoveryFraction = 0.3f;
+
+	// -- Grey-box body ---------------------------------------------------------
+	// A species is also a silhouette (art direction: readability > realism). Until
+	// real meshes arrive (GATE-C), each species describes its own grey-box body:
+	// capsule volume plus two engine-cube boxes (body + head). Same rule as
+	// locomotion — the pawn class knows nothing, the data asset says everything.
+	// All in cm; cube scale of 1.0 = a 100 cm box. Defaults: upright ~180 cm human.
+
+	/** Collision capsule radius, cm. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Body", meta = (ClampMin = "1.0"))
+	float CapsuleRadius = 34.f;
+
+	/** Collision capsule half-height, cm. Must be >= radius. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Body", meta = (ClampMin = "1.0"))
+	float CapsuleHalfHeight = 90.f;
+
+	/** Torso box center, relative to capsule center. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Body")
+	FVector BodyOffset = FVector(0.f, 0.f, -14.f);
+
+	/** Torso box extents as engine-cube scale (X = facing direction). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Body")
+	FVector BodyScale = FVector(0.38f, 0.5f, 1.44f);
+
+	/** Head box center, relative to capsule center. Forward of the body = quadruped read. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Body")
+	FVector HeadOffset = FVector(4.f, 0.f, 74.f);
+
+	/** Head box extents as engine-cube scale. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Body")
+	FVector HeadScale = FVector(0.24f, 0.24f, 0.26f);
+
+	/**
+	 * Species tint, applied to both boxes. Color language, not decoration: at
+	 * isometric distance the tint is what separates hunter from herd at a glance.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Body")
+	FLinearColor BodyColor = FLinearColor(0.45f, 0.34f, 0.25f);
 };

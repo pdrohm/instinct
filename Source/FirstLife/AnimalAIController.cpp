@@ -102,6 +102,15 @@ void AAnimalAIController::Tick(float DeltaTime)
 		return;
 	}
 
+	// A caught animal's brain goes dark (H14): once downed it must not keep grazing,
+	// fleeing, or contributing alarm to the herd. Halt any residual movement and bail
+	// before any sensing/steering — the body is out of the simulation as an agent.
+	if (Animal->IsDowned())
+	{
+		StopMovement();
+		return;
+	}
+
 	// 1. SENSE (proximity today; belief store at U4).
 	const FHerdSense Sense = SenseHerd(*Animal);
 

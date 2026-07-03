@@ -32,12 +32,22 @@ protected:
 
 private:
 	/**
-	 * The one shared reindeer species definition, built once at BeginPlay
-	 * (data-as-code via UAnimalConfig::CreateReindeerConfig, outer = this) and
-	 * injected into every prey. UPROPERTY keeps it alive for the level; shared
-	 * pointer identity is also how the herd brain discovers herd-mates
-	 * (GetConfig() equality — SLICE2_CONTRACT.md).
+	 * Spawns one grazing herd: deferred-spawns an AAnimalCharacter at each location,
+	 * injects the shared species config before BeginPlay, and hands over the AI brain.
+	 * Called once per species — the shared config pointer is also the herd-mate identity
+	 * the brain discovers by (GetConfig() equality — SLICE2_CONTRACT.md), so two configs
+	 * become two herds that never flock together, with no species branching (ADR-E4).
+	 */
+	void SpawnHerd(const UAnimalConfig* Config, TArrayView<const FVector> Spawns);
+
+	/**
+	 * The shared species definitions, built once at BeginPlay (data-as-code via the
+	 * UAnimalConfig factories, outer = this) and injected into every prey. UPROPERTY
+	 * keeps them alive for the level; pointer identity is the herd-mate key.
 	 */
 	UPROPERTY(Transient)
 	TObjectPtr<UAnimalConfig> ReindeerConfig;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimalConfig> SaigaConfig;
 };

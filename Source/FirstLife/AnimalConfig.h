@@ -42,6 +42,19 @@ public:
 	 */
 	static UAnimalConfig* CreateReindeerConfig(UObject* Outer);
 
+	/**
+	 * Builds the saiga antelope — the "anti-reindeer" second prey (ADR-E4: a data
+	 * instance, not a subclass). Where the caribou is a heavy dark marathoner you
+	 * outlast, the saiga is a small pale burst-sprinter you must TRAP: it dashes
+	 * faster than the human, out-cruises the reindeer, and flushes from much farther
+	 * out — but its tank is shallow and it recovers fast the instant it stops, so the
+	 * win is tempo (cut one out, keep unbroken pressure), not distance. Two configs
+	 * make two herds for free: the brain discovers herd-mates by GetConfig() identity,
+	 * so a saiga never flocks with a reindeer. Values first-pass from a wildlife brief
+	 * (Bekenov/Milner-Gulland saiga ecology) — playtest-tune, none is canon.
+	 */
+	static UAnimalConfig* CreateSaigaConfig(UObject* Outer);
+
 	/** Stalk/recover gait. For the human: strong regen on the move. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomotion|Gaits")
 	FGaitSettings Walk = FGaitSettings(200.f, 768.f, 10.f);

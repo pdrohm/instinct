@@ -13,7 +13,7 @@ namespace
 	 * neighbor radius so they read as one herd on first sight. Well inside the
 	 * 100×100 m greybox floor centered on the origin; Z = 120 (capsule drop-in).
 	 */
-	const FVector HerdSpawns[] = {
+	const FVector ReindeerSpawns[] = {
 		FVector(600.f, 300.f, 120.f),
 		FVector(1450.f, 520.f, 120.f),
 		FVector(950.f, 1400.f, 120.f),
@@ -22,6 +22,27 @@ namespace
 		FVector(1600.f, -150.f, 120.f),
 		FVector(2350.f, 600.f, 120.f),
 		FVector(1050.f, -550.f, 120.f),
+	};
+
+	/**
+	 * The saiga herd (second species): a TIGHTER, denser cluster of 12 on the far
+	 * (−X) side of the greybox floor, well clear of the reindeer at +X so the two
+	 * herds read as separate aggregations on sight. Denser spacing than the reindeer
+	 * reinforces the saiga's "one twitchy superorganism" flush read (research §2).
+	 */
+	const FVector SaigaSpawns[] = {
+		FVector(-1500.f, 200.f, 120.f),
+		FVector(-1750.f, 520.f, 120.f),
+		FVector(-1400.f, 720.f, 120.f),
+		FVector(-1900.f, 250.f, 120.f),
+		FVector(-2150.f, 560.f, 120.f),
+		FVector(-1650.f, -150.f, 120.f),
+		FVector(-2000.f, -300.f, 120.f),
+		FVector(-1350.f, 100.f, 120.f),
+		FVector(-2250.f, 150.f, 120.f),
+		FVector(-1550.f, 900.f, 120.f),
+		FVector(-1950.f, 850.f, 120.f),
+		FVector(-2200.f, -50.f, 120.f),
 	};
 }
 
@@ -36,11 +57,23 @@ void AFirstLifeGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// One shared species definition for the whole herd (ADR-E4: data, not a
-	// subclass). All reindeer tuning lives in the factory, none here.
+	// One shared definition per species (ADR-E4: data, not a subclass). All tuning
+	// lives in the factories, none here. Two configs → two herds that never mix.
 	ReindeerConfig = UAnimalConfig::CreateReindeerConfig(this);
+	SaigaConfig = UAnimalConfig::CreateSaigaConfig(this);
 
-	for (const FVector& Location : HerdSpawns)
+	SpawnHerd(ReindeerConfig, ReindeerSpawns);
+	SpawnHerd(SaigaConfig, SaigaSpawns);
+}
+
+void AFirstLifeGameMode::SpawnHerd(const UAnimalConfig* Config, TArrayView<const FVector> Spawns)
+{
+	if (!Config)
+	{
+		return;
+	}
+
+	for (const FVector& Location : Spawns)
 	{
 		const FTransform SpawnTransform(FRotator::ZeroRotator, Location);
 
@@ -55,7 +88,7 @@ void AFirstLifeGameMode::BeginPlay()
 			continue;
 		}
 
-		Prey->SetConfigOverride(ReindeerConfig);
+		Prey->SetConfigOverride(Config);
 		Prey->FinishSpawning(SpawnTransform);
 
 		// AutoPossessAI only covers placed actors; spawned ones need the brain

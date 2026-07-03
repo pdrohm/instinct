@@ -87,6 +87,9 @@ public:
 	 */
 	void SetConditionOverride(float InCondition) { Condition = InCondition; }
 
+	/** This individual's body condition [0.78..1.0] (H14 straggler). Read by the debug overlay. */
+	float GetCondition() const { return Condition; }
+
 protected:
 	virtual void BeginPlay() override;
 

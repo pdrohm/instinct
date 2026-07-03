@@ -16,4 +16,15 @@ class FIRSTLIFE_API AFirstLifeHUD : public AHUD
 
 public:
 	virtual void DrawHUD() override;
+
+	/**
+	 * Toggle the playtest telemetry overlay (H14 feel-pass aid, key F1): floating per-animal
+	 * readouts of condition / stamina / state so the owner can SEE the simulation while tuning
+	 * — is the straggler mechanic producing a laggard? is the herd flushing? A dev tool, not
+	 * shipping UI. Off by default.
+	 */
+	void ToggleDebugOverlay() { bShowDebugOverlay = !bShowDebugOverlay; }
+
+private:
+	bool bShowDebugOverlay = false;
 };

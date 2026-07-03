@@ -105,9 +105,12 @@ ELocomotionGait ULocomotionComponent::FastestSustainableGait() const
 
 void ULocomotionComponent::ApplyGaitToBody(const FGaitSettings& Gait)
 {
-	if (Movement->MaxWalkSpeed != Gait.MaxSpeed)
+	// Per-agent condition trims top speed (H14 straggler): a compromised animal is only
+	// slightly slower flat-out — the reserve, scaled elsewhere, is what makes it fall behind.
+	const float ScaledSpeed = Gait.MaxSpeed * SpeedScale;
+	if (Movement->MaxWalkSpeed != ScaledSpeed)
 	{
-		Movement->MaxWalkSpeed = Gait.MaxSpeed;
+		Movement->MaxWalkSpeed = ScaledSpeed;
 	}
 	if (Movement->MaxAcceleration != Gait.Acceleration)
 	{

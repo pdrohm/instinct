@@ -76,6 +76,17 @@ public:
 	 */
 	void SetConfigOverride(const UAnimalConfig* InConfig) { ConfigOverride = InConfig; }
 
+	/**
+	 * Inject this individual's body condition [~0.78..1.0] before BeginPlay (H14 straggler).
+	 * Predators crop the substandard: prime adults escape, the hunt succeeds against the one
+	 * already compromised (Mech, Peterson & Page; FitzGibbon; Liebenberg). Condition fully
+	 * scales the stamina reserve and lightly trims top speed, so a poor individual keeps up
+	 * on the first flush but empties faster and drifts to the rear under pressure — the
+	 * straggler self-sorts, no herd-brain change needed. The herd spawner rolls it per prey;
+	 * the player body is left at 1.0 (you are not a random weakling). Clamped in ApplyConfig.
+	 */
+	void SetConditionOverride(float InCondition) { Condition = InCondition; }
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -132,6 +143,9 @@ private:
 
 	/** True once caught. Never set on the player — see SetDowned(). */
 	bool bDowned = false;
+
+	/** This individual's body condition (H14 straggler); 1.0 = prime adult. See SetConditionOverride(). */
+	float Condition = 1.f;
 
 	// Base posture, captured from the resolved config in ApplyConfig() so the telegraph
 	// is relative to whatever species silhouette is active (ADR-E4). Tick() lerps the

@@ -43,6 +43,14 @@ public:
 	/** Intent: walk is the deliberate stalk/recover gait. */
 	void SetWantsToWalk(bool bInWantsToWalk) { bWantsToWalk = bInWantsToWalk; }
 
+	/**
+	 * Per-agent top-speed multiplier for individual condition (H14 straggler): a
+	 * poor-condition animal runs only slightly slower flat-out but — via its scaled
+	 * stamina reserve elsewhere — empties far faster, so it falls behind under
+	 * sustained pressure rather than being obviously slow. 1.0 = a prime adult.
+	 */
+	void SetSpeedScale(float InSpeedScale) { SpeedScale = FMath::Max(0.01f, InSpeedScale); }
+
 	UFUNCTION(BlueprintPure, Category = "Locomotion")
 	ELocomotionGait GetActiveGait() const { return ActiveGait; }
 
@@ -76,4 +84,7 @@ private:
 	bool bWantsToWalk = false;
 	bool bResting = true;
 	ELocomotionGait ActiveGait = ELocomotionGait::Jog;
+
+	/** Per-agent condition top-speed multiplier (H14 straggler); 1.0 = a prime adult. */
+	float SpeedScale = 1.f;
 };

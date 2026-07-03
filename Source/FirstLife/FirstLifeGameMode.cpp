@@ -44,6 +44,10 @@ namespace
 		FVector(-1950.f, 850.f, 120.f),
 		FVector(-2200.f, -50.f, 120.f),
 	};
+
+	// Worst body condition a spawned prey can roll (H14 straggler). Matches the character's
+	// clamp; the roll's Square(FRand) weighting keeps most of the herd near prime. First-pass.
+	constexpr float StragglerFloor = 0.78f;
 }
 
 AFirstLifeGameMode::AFirstLifeGameMode()
@@ -89,6 +93,14 @@ void AFirstLifeGameMode::SpawnHerd(const UAnimalConfig* Config, TArrayView<const
 		}
 
 		Prey->SetConfigOverride(Config);
+
+		// Roll this individual's body condition (H14 straggler). Right-shouldered: Square(FRand)
+		// bunches most of the herd near 1.0 with a thin tail toward the floor, so a herd of a
+		// dozen yields only one or two genuine stragglers — the predator's-eye view where prime
+		// adults escape and the hunt is won against the already-compromised one (research §2).
+		const float Condition = 1.f - FMath::Square(FMath::FRand()) * (1.f - StragglerFloor);
+		Prey->SetConditionOverride(Condition);
+
 		Prey->FinishSpawning(SpawnTransform);
 
 		// AutoPossessAI only covers placed actors; spawned ones need the brain

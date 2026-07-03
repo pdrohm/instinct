@@ -44,6 +44,13 @@ namespace
 	constexpr float DownedHeadDrop = 60.f;
 	// Interp speed for the collapse — snappier than fatigue so it buckles, not floats.
 	constexpr float DownedInterpSpeed = 6.f;
+
+	// --- Straggler condition (H14) — first-pass, tune by feel ---
+	// The worst body condition a spawned individual can roll. 0.78 = a straggler sustains
+	// ~22% less before it blows — catchable within one chase, not obviously crippled.
+	// Grounded in predator prey-selection (Mech/Peterson; FitzGibbon): predators crop the
+	// substandard, prime adults escape. The spawner weights rolls near 1.0 (few stragglers).
+	constexpr float ConditionFloor = 0.78f;
 }
 
 AAnimalCharacter::AAnimalCharacter()
@@ -139,9 +146,16 @@ void AAnimalCharacter::BeginPlay()
 
 void AAnimalCharacter::ApplyConfig()
 {
-	Stamina->Configure(ResolvedConfig->MaxStamina, ResolvedConfig->ExhaustionRecoveryFraction);
+	// Per-agent condition (H14 straggler): the spawner rolls it near 1.0 with a thin tail to
+	// a substandard floor; the player body keeps 1.0. It FULLY scales the innate stamina
+	// reserve (a compromised animal has less to spend) and LIGHTLY trims top speed
+	// (0.5 + 0.5·condition), so a straggler runs with the herd on the first flush but empties
+	// sooner and drifts to the rear under pressure — the readable target the hunt is won on.
+	Condition = FMath::Clamp(Condition, ConditionFloor, 1.f);
+	Stamina->Configure(ResolvedConfig->MaxStamina * Condition, ResolvedConfig->ExhaustionRecoveryFraction);
 	Hunger->Configure(ResolvedConfig->MaxHunger, ResolvedConfig->HungerDrainPerSecond);
 	Locomotion->Configure(*ResolvedConfig);
+	Locomotion->SetSpeedScale(0.5f + 0.5f * Condition);
 
 	// The species shapes its own grey-box body: the constructor's human cubes are
 	// only defaults, re-proportioned here from data (ADR-E4 extended to silhouette).

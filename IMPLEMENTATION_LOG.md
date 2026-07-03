@@ -1,5 +1,34 @@
 # Implementation Log — The First Life
 
+## Session 2026-07-03 (E) — Autonomous dev loop, iter 1: persistence-hunt core loop (H14)
+
+> First iteration of the owner-requested self-paced dev loop (research subagent → implementation subagent →
+> authoritative build → commit). Built the make-or-break slice: run a reindeer to exhaustion and take it.
+> Commit `68304fc`. Companion research: kill-moment grounding brief (wildlife-biology subagent, inline).
+
+- **Research subagent (Wildlife Biologist + Exercise Physiologist)** grounded the *kill moment* so the
+  telegraph is honest, not invented. Load-bearing finding: **the exhaustion latch IS the catch window** — a
+  blown, hyperthermic, myopathic ungulate that has just stopped is briefly catchable but recovers its escape
+  once it cools back to ~30% (capture myopathy; Spraker 1993, Liebenberg 2006). So `Stamina->IsExhausted()`
+  already *is* "takeable"; no separate downable state was needed. Also: head-drop should be **continuous**
+  with fatigue, and recovery must be tied to standing still only (which it already is) — "deny it rest" is the
+  whole mechanism, not "outrun it".
+- **Implementation subagent (UE5.6 gameplay)** built, against a pinned contract, four pieces:
+  `UHuntSubsystem` (tickable world subsystem, mirrors `UScentFieldSubsystem`) does catch-detection with an
+  **interruptible dwell** (~1.5 s within 200 cm of an exhausted prey; stepping out or letting it recover
+  resets it — that reset is the win condition) + a time-to-kill clock (H14 metric) surfaced on the HUD;
+  `UStaminaComponent::Refill()` is the feed beat; `AAnimalCharacter` now ticks a continuous fatigue head-drop
+  (`1 − staminaFraction`, eased) and a downed-collapse pose; `AAnimalAIController` silences a downed pawn's
+  brain (early-out + `StopMovement`).
+- **Per-species grey-box silhouette** (landed same commit, from the prior turn): a species describes its own
+  capsule + torso/head boxes + tint in `UAnimalConfig` (ADR-E4 extended to silhouette). Reindeer = dark
+  horizontal quadruped vs the human's upright ochre figure — hunter/herd separate at iso distance before real
+  meshes (GATE-C). Posture telegraph is relative to each species' base offsets.
+- **Seams held:** no subclasses (ADR-E4), no behavior trees, all cognition still in `FHerdBrain`, the only new
+  pawn fields are the downed bool + two posture base offsets. All numbers first-pass guesses, commented.
+- **Unverified by a human hand:** the whole loop is compile-green only. GATE-A (feel-pass) still open and now
+  has real stakes to test against.
+
 ## Session 2026-07-03 (D) — Slice 2: the living herd (P2 + A1), parallel fan-out (Chief Architect)
 
 > First implementation fan-out. Built build-order step 2 (the living reindeer herd, H5) via three parallel

@@ -11,9 +11,12 @@
 ## 1. One-paragraph state
 
 A compiling, single-player UE 5.6 grey-box slice runs on Mac: an early *Homo sapiens* body with a
-three-gait endurance-locomotion + stamina economy, a clean AI↔player possession seam, a display-only
-per-species perception switcher (keys 1–4), a canvas HUD, and a script-built greybox map. **Nothing has
-been validated by a human hand yet.** The project is not blocked on engineering capacity — it is blocked
+three-gait endurance-locomotion + stamina economy, a clean AI↔player possession seam, a living 8-reindeer
+herd (graze/flee brain), a **working persistence-hunt core loop (H14)** — run a reindeer to exhaustion,
+dwell to catch it, feed to refill — with a continuous fatigue/collapse posture telegraph and per-species
+grey-box silhouettes (hunter/herd separate at iso distance), a display-only per-species perception switcher
+(keys 1–4), a canvas HUD, and a script-built greybox map. **Nothing has been validated by a human hand
+yet** — the hunt loop is compile-green only, which makes the still-open GATE-A feel-pass the priority. The project is not blocked on engineering capacity — it is blocked
 on a **hands-on feel-pass**, a **binary-asset (mannequin) import**, and **three design sign-offs** on the
 perception/cognition architecture. The next code worth writing is gated behind those.
 

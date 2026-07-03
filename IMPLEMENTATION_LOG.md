@@ -1,5 +1,15 @@
 # Implementation Log — The First Life
 
+## Session 2026-07-03 (E) — Autonomous dev loop, iter 6: playtest telemetry overlay (commit `b6d02f9`)
+
+> Validation-focused iteration (owner-chosen over more breadth): make the simulation legible so the GATE-A
+> feel-pass is productive, then STOP and play. **F1** toggles a floating per-animal overlay — condition
+> (`C0.xx`), stamina %, and state (graze / FLEE / BLOWN / DOWNED). Straggler condition is red + `<STRAGGLER>`
+> flagged so the takeable individual (the H14 mechanic) is findable at a glance. Off by default, dev tool only.
+> New: `AAnimalCharacter::GetCondition()`, `AFirstLifeHUD::ToggleDebugOverlay()`, `DebugAction` (F1) on the
+> controller. **Loop paused here** — six iterations form a complete, winnable, tracked, now-instrumented
+> persistence-hunt slice, and the next real signal comes from a human playing it, not more code.
+
 ## Session 2026-07-03 (E) — Autonomous dev loop, iter 5: lose-and-track spoor (commit `d84390d`)
 
 > The tracking half of the persistence hunt (Liebenberg, *The Art of Tracking*): when the quarry breaks line

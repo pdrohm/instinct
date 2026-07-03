@@ -46,6 +46,18 @@ public:
 	/** Where the point currently reads: laid position, drifted downwind by age. */
 	FVector GetDriftedLocation(const FScentPoint& Point) const;
 
+	/**
+	 * The spoor query (H14 tracking): the freshest scent within Radius of From, returned
+	 * as a follow-this-way 2D direction + freshness [0..1] (1 = just laid, 0 = about to
+	 * age out). This is how the persistence hunter continues when the quarry breaks line
+	 * of sight — reading the trail, not the animal (Liebenberg, *The Art of Tracking*).
+	 * Returns false when the trail has gone cold (no point in range) — losing the spoor is
+	 * how a hunt fails. Prey-only: the hunter's own body does not lay trackable scent (see
+	 * the deposit step), so the freshest nearby point is always the quarry's.
+	 */
+	bool GetFreshestTrailNear(const FVector& From, float Radius,
+		FVector& OutDirection, float& OutFreshness) const;
+
 private:
 	TArray<FScentPoint> ScentPoints;
 	float TimeUntilNextSample = 0.f;

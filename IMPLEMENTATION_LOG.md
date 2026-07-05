@@ -1,5 +1,31 @@
 # Implementation Log — The First Life
 
+## Session 2026-07-04 — Speed-driven animation without AnimBPs (commit `68c3dfd`)
+
+> Retro-logged 2026-07-04. The imported skeletal animals rendered frozen in bind pose — the meshes shipped
+> with idle/walk/run clips but nothing played them (`VisualAnimClass` was never set). Rather than gate
+> animation on editor AnimBP authoring, `AAnimalCharacter` gained a **built-in C++ locomotion driver**:
+> `UAnimalConfig` gained `IdleAnim`/`WalkAnim`/`RunAnim` soft pointers, and `UpdateLocomotionAnim` picks a
+> clip from actual ground speed each tick — gait bands derived from the species' OWN Walk/Jog speeds
+> (ADR-E4, no magic numbers), separate on/off thresholds for hysteresis (no boundary flicker), frozen on a
+> downed body (a caught animal collapses, it doesn't keep cycling its run), reset on runtime species swap.
+> The driver stays dormant the moment a real ABP exists at `VisualAnimClass` — the editor upgrade path in
+> `docs/ANIMATION.md` remains a free swap. Companion docs written: `docs/ANIMATION.md` (ABP recipe),
+> `docs/ENVIRONMENT_TUNDRA.md` (design ruling: open tundra is load-bearing for a persistence hunt on an
+> iso camera — the biome was right, the execution was dead; Landscape Stage 1 spec).
+
+## Session 2026-07-03 (F) — Asset import pass: real bodies + tundra map (commits `799769b`, `715a83a`)
+
+> Retro-logged 2026-07-04. Binary-asset GUI/import session (the GATE-C work): deer + tiger skeletal meshes
+> with idle/walk/run clips, wolf skeletal mesh (idle/running/sniffing), and a human mesh — which turned out
+> to be a **static** mesh (`asian_old_man_warrior...`), so it cannot animate; a skeletal human is still
+> owed. Megascans tundra terrain imported and a `Tundra.umap` created (later ruled "dead slab" — see
+> `docs/ENVIRONMENT_TUNDRA.md`). Code side (`715a83a`): `AAnimalCharacter` runtime species/body swapping +
+> ground snapping; `UAnimalConfig` gained visual-mesh fields and `CreateWolfConfig`/`CreateTigerConfig`;
+> GameMode spawns wolf and tiger **validation pairs** through the same `SpawnHerd` species-as-data route —
+> proving imported animals need no bespoke class. `Scripts/apply_megascans_terrain.py` +
+> `build_greybox_map.py` extended. Unplayed, like everything else — GATE-A unchanged.
+
 ## Session 2026-07-03 (E) — Autonomous dev loop, iter 6: playtest telemetry overlay (commit `b6d02f9`)
 
 > Validation-focused iteration (owner-chosen over more breadth): make the simulation legible so the GATE-A

@@ -4,21 +4,26 @@
 > Companion files: `CURRENT_SPRINT.md` (what we do next), `TASK_GRAPH.md` (dependencies & parallelism),
 > `ARCHITECTURE_DECISIONS.md` (engineering ADRs), `IMPLEMENTATION_LOG.md` (per-loop history).
 > Design law lives in `docs/` (`VISION.md`, `GAME_DNA.md`, `DESIGN_DECISIONS.md`, `HYPOTHESES.md`).
-> Last updated: 2026-07-03 — orchestration bootstrap.
+> Last updated: 2026-07-04 — post dev-loop iters 1–6 + asset/animation pass.
 
 ---
 
 ## 1. One-paragraph state
 
-A compiling, single-player UE 5.6 grey-box slice runs on Mac: an early *Homo sapiens* body with a
-three-gait endurance-locomotion + stamina economy, a clean AI↔player possession seam, a living 8-reindeer
-herd (graze/flee brain), a **working persistence-hunt core loop (H14)** — run a reindeer to exhaustion,
-dwell to catch it, feed to refill — with a continuous fatigue/collapse posture telegraph and per-species
-grey-box silhouettes (hunter/herd separate at iso distance), a display-only per-species perception switcher
-(keys 1–4), a canvas HUD, and a script-built greybox map. **Nothing has been validated by a human hand
-yet** — the hunt loop is compile-green only, which makes the still-open GATE-A feel-pass the priority. The project is not blocked on engineering capacity — it is blocked
-on a **hands-on feel-pass**, a **binary-asset (mannequin) import**, and **three design sign-offs** on the
-perception/cognition architecture. The next code worth writing is gated behind those.
+A compiling, single-player UE 5.6 slice runs on Mac: an early *Homo sapiens* body with a three-gait
+endurance-locomotion + stamina economy, a clean AI↔player possession seam, and a **complete, winnable,
+tracked persistence-hunt vertical slice (H14)** — hunger gives the reason to hunt, an 8-reindeer and a
+12-saiga herd (graze/flee brains) give two contrasting quarries, per-agent body condition produces the
+catchable straggler, exhaustion + interruptible dwell is the catch, feeding delivers the prey's nutrition,
+and a scent-spoor arrow keeps a lost quarry trackable. An **F1 telemetry overlay** instruments it all for
+the feel-pass. On top of that, a first **visual-asset pass** landed: imported deer/tiger/wolf skeletal
+meshes (+ a static human mesh), a C++ speed-driven animation driver that plays each species' idle/walk/run
+clips with no AnimBP required, runtime species/body swapping, ground snapping, a Megascans tundra
+`Tundra.umap`, and wolf/tiger validation pairs spawned through the same species-as-data route. **Nothing
+has been validated by a human hand yet** — everything is compile-green only, which makes the still-open
+GATE-A feel-pass the unambiguous bottleneck. Remaining non-engineering gates: the feel-pass itself,
+perception/cognition design sign-off (GATE-B), and editor-side environment work (Landscape pass per
+`docs/ENVIRONMENT_TUNDRA.md`).
 
 ---
 
@@ -32,8 +37,16 @@ perception/cognition architecture. The next code worth writing is gated behind t
 | Possession seam | `AAnimalCharacter` (AIControllerClass + AutoPossessAI) ↔ `AWolfPlayerController` ↔ `AAnimalAIController` | **Solid & demonstrated.** `P` physically hands the body between AI and player. Strong early H7 evidence. Not authority-safe (no netcode — out of scope). |
 | Perception (display-only) | `USpeciesPerceptionComponent` + `USpeciesPerceptionProfile` | **Proto-slice-1.** Vision-only knowledge gating: targets are **Tracked** (shown) or **Absent** (hidden), 0.4 s persistence. A real but embryonic belief store (`HiddenTargets`, `SecondsSinceSeen`). Runs **only for the player body.** 4 species seeded in code. |
 | Scent field (placeholder) | `UScentFieldSubsystem` | **"FAKE, on purpose."** Flat FIFO `TArray<FScentPoint>` (loc+time), 75 s age-out, fixed wind drift. Not a grid, no diffusion/terrain/odor identity. Read-only overlay consumer. |
-| HUD | `AFirstLifeHUD` | Canvas-drawn (no UMG): stamina bar, gait label, possession prompt, perception readout. |
-| World | `Scripts/build_greybox_map.py` → `GreyBox.umap` | 100×100 m floor, walls, 3 rocks + a rise, movable sun/skylight. Lumen disabled (Metal/macOS 26 black-Lit bug); SSR fallback. |
+| Hunt loop (H14) | `UHuntSubsystem` | **Built (iter 1).** Catch = interruptible ~1.5 s dwell within 200 cm of an *exhausted* prey (the exhaustion latch IS the catch window — capture-myopathy grounding); time-to-kill clock on HUD; feed = `Refill()` + prey's `NutritionValue`. Continuous fatigue head-drop + downed-collapse posture telegraph. |
+| Hunger | `UHungerComponent` | **Built (iter 2).** Tickless reservoir, ~20 min to empty; starvation scales stamina regen (floor 0.3) and capacity (floor 0.5) via two opaque scalars. Player-only pressure; nutrition lives on the eaten animal (reindeer 85, saiga 48). |
+| Two prey species | `CreateReindeerConfig` / `CreateSaigaConfig` | **Built (iters P2+3).** 8-reindeer loose herd (+X) vs 12-saiga tight cluster (−X): saiga dashes faster, out-cruises, but shallow fast-refill tank — win by tempo, not distance. Herd identity = config pointer. |
+| Catchable straggler | per-agent condition (`SetConditionOverride`, `SetSpeedScale`) | **Built (iter 4).** Condition `[0.78..1.0]`, right-shouldered roll; fully scales stamina, lightly trims speed — the poor animal self-sorts to the rear under pressure. Makes H14 winnable. |
+| Lose-and-track spoor | `UScentFieldSubsystem::GetFreshestTrailNear` | **Built (iter 5).** Player lays no scent, so fresh points are prey spoor; HUD draws a HOT→COLD arrow only when the nearest prey is beyond reveal distance. |
+| Playtest telemetry | `AFirstLifeHUD::ToggleDebugOverlay` (**F1**) | **Built (iter 6).** Per-animal condition/stamina/state overlay, straggler flagged red. Dev-only, off by default. Built to make GATE-A productive. |
+| Herd brain | `FHerdBrain` + `AAnimalAIController` | **Built (Slice 2).** Boids graze/flee, contagious flush, FID decision surface, per-agent jitter → emergent behavior. No behavior trees. |
+| Visual assets + animation | `Content/Animals/*`, C++ anim driver in `AAnimalCharacter` | **Built (2026-07-03/04).** Deer/tiger/wolf skeletal meshes with idle/walk/run clips; human = static mesh (no anim). `UpdateLocomotionAnim` plays clips by ground speed (hysteresis, gait bands from the species' own config) whenever `VisualAnimClass` is unset — an AnimBP upgrades it for free later. Runtime species/body swap + ground snapping. Wolf/tiger pairs spawned as normal species configs to validate the import route. |
+| HUD | `AFirstLifeHUD` | Canvas-drawn (no UMG): stamina bar, hunger bar, gait label, possession prompt, perception readout, time-to-kill, spoor arrow, F1 overlay. |
+| World | `Scripts/build_greybox_map.py` → `GreyBox.umap`; `Tundra.umap` | Greybox: 100×100 m floor, walls, rocks + rise, movable sun/skylight. Lumen disabled (Metal/macOS 26 black-Lit bug); SSR fallback. Tundra: Megascans terrain slab — **reads dead; Landscape rework planned** (`docs/ENVIRONMENT_TUNDRA.md`). |
 | Toolchain | — | UE 5.6 compiles on Mac only after Metal Toolchain install + `Apple_SDK.json` MaxVersion→26.2.0 (re-apply after every engine reinstall — see memory). |
 
 ## 3. What is STUBBED / placeholder (known, intentional)
@@ -47,8 +60,14 @@ perception/cognition architecture. The next code worth writing is gated behind t
   (runtime `CreateReindeerConfig()` — data, not a subclass) via the `SetConfigOverride` seam; they graze,
   flush contagiously, and flee as a group. Replaces the 3 debug wander targets. Grey-box cubes; H5 validated
   in code, not yet by a human hand.
-- **Prey, hunger, scent-as-gameplay, day/night, weather, injury, combat, crafting, multiplayer** — none exist. Scope wall held.
-- **Meshes** — engine-cube grey-box body/head. The believable human mesh is unacquired (binary-asset GUI work).
+- **Day/night, weather, injury, combat, crafting, multiplayer** — none exist. Scope wall held.
+  (Prey, hunger, and scent-as-tracking HAVE since been built — see §2.)
+- **Human mesh** — a static mesh (`asian_old_man_warrior...`), so it cannot animate; a skeletal human
+  (e.g. Game Animation Sample mannequin) is still the path to presence-quality playtests (H3/H18).
+- **Animation Blueprints** — none exist; the C++ clip driver covers idle/walk/run. ABPs (blend spaces,
+  state machines, wolf `sniffing`, turn-in-place) are an optional editor upgrade (`docs/ANIMATION.md`).
+- **Tundra environment** — a dead photogrammetry slab; needs the sculpted-Landscape Stage 1 pass
+  (editor GUI work, `docs/ENVIRONMENT_TUNDRA.md`).
 - **Perception post-process** — placeholder global tint/vignette; directional effects need a post-process material (binary asset).
 - **`DA_Human.uasset`** — predates the `FGaitSettings` restructure; orphaned flat floats ignored, class defaults are the human profile (behaviour identical). Needs a re-save to clean.
 
@@ -88,9 +107,17 @@ WORLD (sim truth) → ① STIMULUS FIELD (world's decaying memory) → ② CHANN
 
 The project cannot productively spawn *implementation* agents until these clear. They are owner (vision-holder) decisions and human-in-the-loop tasks, not engineering capacity:
 
-- **GATE-A — Hands-on feel-pass (H2).** Someone must play 10 min and tune `DA_Human` live. Validates the endurance/stamina rhythm. *Cannot be delegated to a headless agent.*
+- **GATE-A — Hands-on feel-pass (H2 + H14).** *Still open, now with much higher stakes:* the full hunt
+  loop (hunger → chase → straggler → catch → track → feed) is built on ~six commits of first-pass guesses.
+  Play ~20 min with the F1 overlay on; tune live. *Cannot be delegated to a headless agent.* **This is the
+  single bottleneck — the dev loop was deliberately paused here (iter 6).**
 - **GATE-B — Perception/cognition sign-off.** `SPECIES_COGNITION.md`, `PERCEPTION_DESIGN.md`, `SPECIES_KNOWLEDGE_FOG.md` are stamped *"awaiting agreement — no code."* One clean sign-off (four blockers, see `CURRENT_SPRINT.md`) unlocks the Umwelt Slice 1.
-- **GATE-C — Mannequin/human mesh acquisition.** Fab/Epic GUI work (~15 min) to replace grey-box cubes. Binary asset — *cannot be authored as text.* Unblocks presence-quality playtests (H3/H18).
+- **GATE-C — Believable bodies. ~80 % cleared (2026-07-03/04):** deer/tiger/wolf skeletal meshes imported
+  and animating via the C++ clip driver. **Remaining:** a *skeletal* human (current human mesh is static →
+  cannot animate), plus optional per-species AnimBPs. Editor GUI work, `docs/ANIMATION.md`.
+- **GATE-D (new) — Living tundra Landscape.** `Tundra.umap`'s Megascans slab reads dead. Stage 1
+  (sculpted Landscape + layered material + low sun/fog + hand scatter) is editor GUI work, a few hours,
+  spec'd in `docs/ENVIRONMENT_TUNDRA.md`. Not blocking GATE-A (greybox suffices for the feel-pass).
 
 ## 7. Hypotheses in flight
 
@@ -100,9 +127,9 @@ The project cannot productively spawn *implementation* agents until these clear.
 
 ## 8. Roadmap position
 
-Roadmap **Stage 1 (Prototype — "The First Life")**, build-order **steps 1–2 authored** (human + stamina +
-camera; living reindeer herd with graze/flee brain, 2026-07-03 D). **Step 3 (awareness tuning) is next** —
-though P2's brain already includes flee/FID, so P3 is now largely a feel-tuning pass rather than net-new
-construction. Steps 4–5 (prey stamina + feed, hunger) follow. The
-persistence-hunt core loop (step 4) is the make-or-break (H14). Perception/cognition (the Umwelt) is a
-parallel design-gated track, not on the prototype's critical play-loop path.
+Roadmap **Stage 1 (Prototype — "The First Life")**, build-order **steps 1–5 authored** (human + stamina +
+camera; living herds; awareness/flee; persistence-hunt catch + feed; hunger) — the entire prototype
+play-loop is code-complete but **zero-validated**. The make-or-break H14 question ("is running an animal
+to exhaustion fun for 20 minutes?") is now answerable by playing, not by building. Perception/cognition
+(the Umwelt) remains a parallel design-gated track (GATE-B), not on the critical play-loop path.
+Presentation (skeletal human, AnimBPs, living tundra Landscape) is a parallel editor-side track.

@@ -1,5 +1,12 @@
 # Animal Animation — Speed-Driven Locomotion AnimBP
 
+> **Status update (2026-07-04, commit `68c3dfd`):** the frozen-in-bind-pose problem below is **already
+> solved in C++**. `AAnimalCharacter` now drives idle/walk/run clips directly from ground speed (with
+> hysteresis) whenever `VisualAnimClass` is unset — the configs point at each species' imported clips via
+> `IdleAnim`/`WalkAnim`/`RunAnim`. The AnimBP recipe below is therefore an **optional upgrade** (smooth
+> blending, state machines, wolf `sniffing`), not a prerequisite. The moment an ABP exists at the expected
+> path, it takes over and the C++ driver goes dormant — nothing else to change.
+
 ## Why the animals looked frozen
 
 The imported FBX meshes (Deer, Tiger, Wolf) **came with animation clips**

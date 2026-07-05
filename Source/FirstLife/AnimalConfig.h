@@ -192,6 +192,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
 	TSoftClassPtr<class UAnimInstance> VisualAnimClass;
 
+	// Locomotion clips for the built-in C++ animation driver (needs no AnimBP). While
+	// VisualAnimClass is unset/unresolved, AAnimalCharacter plays one of these by ground
+	// speed (idle → walk → run, with hysteresis). The moment a real Animation Blueprint
+	// exists at VisualAnimClass it takes over and these are ignored. See docs/ANIMATION.md.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
+	TSoftObjectPtr<class UAnimSequence> IdleAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
+	TSoftObjectPtr<class UAnimSequence> WalkAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
+	TSoftObjectPtr<class UAnimSequence> RunAnim;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
 	FVector VisualMeshOffset = FVector(0.f, 0.f, -90.f);
 

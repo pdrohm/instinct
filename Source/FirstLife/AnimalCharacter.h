@@ -6,6 +6,7 @@
 #include "AnimalCharacter.generated.h"
 
 class UAnimalConfig;
+class UAnimSequence;
 class UCameraComponent;
 class UHungerComponent;
 class ULocomotionComponent;
@@ -165,4 +166,28 @@ private:
 	FVector BodyBaseOffset = FVector::ZeroVector;
 	FRotator HeadBaseRotation = FRotator::ZeroRotator;
 	FRotator BodyBaseRotation = FRotator::ZeroRotator;
+
+	// -- Built-in locomotion animation (no AnimBP required) --------------------
+	// When a species has a skeletal visual mesh but no resolved Animation Blueprint,
+	// the body drives idle/walk/run itself from ground speed. The moment a real AnimBP
+	// exists at the config's VisualAnimClass it takes over and this stays dormant.
+	// See docs/ANIMATION.md.
+	enum class ELocoAnim : uint8 { Idle, Walk, Run };
+
+	/** Picks and plays the idle/walk/run clip for the current ground speed, with hysteresis. */
+	void UpdateLocomotionAnim(float GroundSpeed);
+
+	/** True while this body owns its skeletal animation in C++ (skeletal mesh + no AnimBP). */
+	bool bDrivingSkeletalAnim = false;
+
+	ELocoAnim CurrentLocoAnim = ELocoAnim::Idle;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimSequence> IdleAnim;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimSequence> WalkAnim;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimSequence> RunAnim;
 };

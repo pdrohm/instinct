@@ -1,6 +1,7 @@
 #include "AnimalConfig.h"
 
 #include "Animation/AnimInstance.h"
+#include "Animation/AnimSequence.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/StaticMesh.h"
 
@@ -83,6 +84,20 @@ UAnimalConfig* UAnimalConfig::CreateReindeerConfig(UObject* Outer)
 	Config->VisualMeshOffset = FVector(0.f, 0.f, -72.f);
 	Config->VisualMeshRotation = FRotator(0.f, -90.f, 0.f);
 	Config->VisualMeshScale = FVector(1.f, 1.f, 1.f);
+
+	// Speed-driven locomotion AnimBP (idle/walk/run BlendSpace on ground speed). Null-safe:
+	// until this asset exists in the editor the mesh stays in bind pose; the moment you
+	// author /Game/Animals/Deer/ABP_Deer it connects with no recompile. See docs/ANIMATION.md.
+	Config->VisualAnimClass = TSoftClassPtr<UAnimInstance>(
+		FSoftClassPath(TEXT("/Game/Animals/Deer/ABP_Deer.ABP_Deer_C")));
+
+	// Built-in C++ locomotion clips (used until an ABP exists). Imported with the FBX.
+	Config->IdleAnim = TSoftObjectPtr<UAnimSequence>(
+		FSoftObjectPath(TEXT("/Game/Animals/Deer/Deer_001_Anim_Deer_001_idle.Deer_001_Anim_Deer_001_idle")));
+	Config->WalkAnim = TSoftObjectPtr<UAnimSequence>(
+		FSoftObjectPath(TEXT("/Game/Animals/Deer/Deer_001_Anim_Deer_001_walk.Deer_001_Anim_Deer_001_walk")));
+	Config->RunAnim = TSoftObjectPtr<UAnimSequence>(
+		FSoftObjectPath(TEXT("/Game/Animals/Deer/Deer_001_Anim_Deer_001_run.Deer_001_Anim_Deer_001_run")));
 
 	return Config;
 }
@@ -176,6 +191,18 @@ UAnimalConfig* UAnimalConfig::CreateTigerConfig(UObject* Outer)
 	Config->VisualMeshRotation = FRotator(0.f, -90.f, 0.f);
 	Config->VisualMeshScale = FVector(1.f, 1.f, 1.f);
 
+	// Speed-driven locomotion AnimBP — null-safe until authored. See docs/ANIMATION.md.
+	Config->VisualAnimClass = TSoftClassPtr<UAnimInstance>(
+		FSoftClassPath(TEXT("/Game/Animals/Tiger/ABP_Tiger.ABP_Tiger_C")));
+
+	// Built-in C++ locomotion clips (used until an ABP exists). Imported with the FBX.
+	Config->IdleAnim = TSoftObjectPtr<UAnimSequence>(
+		FSoftObjectPath(TEXT("/Game/Animals/Tiger/Tiger_001_Anim_Tiger_001_idle.Tiger_001_Anim_Tiger_001_idle")));
+	Config->WalkAnim = TSoftObjectPtr<UAnimSequence>(
+		FSoftObjectPath(TEXT("/Game/Animals/Tiger/Tiger_001_Anim_Tiger_001_walk.Tiger_001_Anim_Tiger_001_walk")));
+	Config->RunAnim = TSoftObjectPtr<UAnimSequence>(
+		FSoftObjectPath(TEXT("/Game/Animals/Tiger/Tiger_001_Anim_Tiger_001_run.Tiger_001_Anim_Tiger_001_run")));
+
 	return Config;
 }
 
@@ -214,6 +241,20 @@ UAnimalConfig* UAnimalConfig::CreateWolfConfig(UObject* Outer)
 	Config->VisualMeshOffset = FVector(0.f, 0.f, -58.f);
 	Config->VisualMeshRotation = FRotator(0.f, -90.f, 0.f);
 	Config->VisualMeshScale = FVector(1.f, 1.f, 1.f);
+
+	// Speed-driven locomotion AnimBP — null-safe until authored. Wolf clips live under
+	// SkeletalMeshes/ (idle, running, sniffing). See docs/ANIMATION.md.
+	Config->VisualAnimClass = TSoftClassPtr<UAnimInstance>(
+		FSoftClassPath(TEXT("/Game/Animals/Wolf/ABP_Wolf.ABP_Wolf_C")));
+
+	// Built-in C++ locomotion clips (used until an ABP exists). The wolf import has no
+	// dedicated walk clip, so the run/lope covers both moving gaits for now.
+	Config->IdleAnim = TSoftObjectPtr<UAnimSequence>(
+		FSoftObjectPath(TEXT("/Game/Animals/Wolf/SkeletalMeshes/idle.idle")));
+	Config->WalkAnim = TSoftObjectPtr<UAnimSequence>(
+		FSoftObjectPath(TEXT("/Game/Animals/Wolf/SkeletalMeshes/running.running")));
+	Config->RunAnim = TSoftObjectPtr<UAnimSequence>(
+		FSoftObjectPath(TEXT("/Game/Animals/Wolf/SkeletalMeshes/running.running")));
 
 	return Config;
 }

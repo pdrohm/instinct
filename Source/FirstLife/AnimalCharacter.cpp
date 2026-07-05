@@ -7,6 +7,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Animation/AnimSequence.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/World.h"
@@ -184,6 +185,13 @@ void AAnimalCharacter::ApplyConfig()
 	HeadMesh->SetRelativeLocation(ResolvedConfig->HeadOffset);
 	HeadMesh->SetRelativeScale3D(ResolvedConfig->HeadScale);
 
+	// Reset the built-in animation driver up front so a runtime species swap (SetRuntimeConfig)
+	// never leaves a non-skeletal body trying to play the previous animal's clips.
+	bDrivingSkeletalAnim = false;
+	IdleAnim = nullptr;
+	WalkAnim = nullptr;
+	RunAnim = nullptr;
+
 	if (USkeletalMesh* VisualMesh = ResolvedConfig->VisualSkeletalMesh.LoadSynchronous())
 	{
 		USkeletalMeshComponent* CharacterMesh = GetMesh();
@@ -196,6 +204,30 @@ void AAnimalCharacter::ApplyConfig()
 
 		UClass* AnimClass = ResolvedConfig->VisualAnimClass.LoadSynchronous();
 		CharacterMesh->SetAnimInstanceClass(AnimClass);
+
+		if (AnimClass)
+		{
+			// A real Animation Blueprint owns the mesh; the built-in driver stays dormant.
+			bDrivingSkeletalAnim = false;
+		}
+		else
+		{
+			// No ABP asset yet — drive idle/walk/run from C++ using the config's clips, so
+			// the animal moves with zero editor authoring. Upgrades for free the day an
+			// ABP is created at VisualAnimClass (this whole branch is then skipped).
+			IdleAnim = ResolvedConfig->IdleAnim.LoadSynchronous();
+			WalkAnim = ResolvedConfig->WalkAnim.LoadSynchronous();
+			RunAnim = ResolvedConfig->RunAnim.LoadSynchronous();
+			bDrivingSkeletalAnim = (IdleAnim || WalkAnim || RunAnim);
+			CurrentLocoAnim = ELocoAnim::Idle;
+
+			UAnimSequence* StartClip = IdleAnim ? IdleAnim.Get()
+				: (WalkAnim ? WalkAnim.Get() : RunAnim.Get());
+			if (StartClip)
+			{
+				CharacterMesh->PlayAnimation(StartClip, /*bLooping=*/true);
+			}
+		}
 
 		BodyMesh->SetHiddenInGame(true);
 		HeadMesh->SetHiddenInGame(true);
@@ -298,6 +330,14 @@ void AAnimalCharacter::Tick(float DeltaTime)
 		return;
 	}
 
+	// Skeletal locomotion: pick idle/walk/run from actual ground speed. Frozen on a downed
+	// body — a caught animal collapses, it does not keep cycling its run. Only runs when this
+	// body owns its animation in C++ (no AnimBP); otherwise the AnimBP does this itself.
+	if (bDrivingSkeletalAnim && !bDowned)
+	{
+		UpdateLocomotionAnim(GetVelocity().Size2D());
+	}
+
 	FVector HeadTarget = HeadBaseOffset;
 	FVector BodyTarget = BodyBaseOffset;
 	float RollTarget = 0.f;
@@ -333,6 +373,63 @@ void AAnimalCharacter::Tick(float DeltaTime)
 		BodyMesh->GetRelativeRotation().Roll, RollTarget, DeltaTime, InterpSpeed);
 	BodyMesh->SetRelativeRotation(BodyBaseRotation + FRotator(0.f, 0.f, RollNow));
 	HeadMesh->SetRelativeRotation(HeadBaseRotation + FRotator(0.f, 0.f, RollNow));
+}
+
+void AAnimalCharacter::UpdateLocomotionAnim(float GroundSpeed)
+{
+	USkeletalMeshComponent* Mesh = GetMesh();
+	if (!Mesh || !ResolvedConfig)
+	{
+		return;
+	}
+
+	// Bands are read off the species' OWN gaits (ADR-E4: data, not magic numbers), so a
+	// fast animal reads as running and a slow one as walking regardless of absolute scale.
+	// Separate on/off thresholds give hysteresis — the clip never flickers at a boundary.
+	constexpr float MoveOnSpeed = 20.f;   // above this the body is moving at all
+	constexpr float MoveOffSpeed = 10.f;  // below this it settles back to idle
+	const float RunOnSpeed = (ResolvedConfig->Walk.MaxSpeed + ResolvedConfig->Jog.MaxSpeed) * 0.5f;
+	const float RunOffSpeed = RunOnSpeed * 0.8f;
+
+	ELocoAnim Next = CurrentLocoAnim;
+	switch (CurrentLocoAnim)
+	{
+	case ELocoAnim::Idle:
+		if (GroundSpeed > RunOnSpeed) { Next = ELocoAnim::Run; }
+		else if (GroundSpeed > MoveOnSpeed) { Next = ELocoAnim::Walk; }
+		break;
+	case ELocoAnim::Walk:
+		if (GroundSpeed < MoveOffSpeed) { Next = ELocoAnim::Idle; }
+		else if (GroundSpeed > RunOnSpeed) { Next = ELocoAnim::Run; }
+		break;
+	case ELocoAnim::Run:
+		if (GroundSpeed < MoveOffSpeed) { Next = ELocoAnim::Idle; }
+		else if (GroundSpeed < RunOffSpeed) { Next = ELocoAnim::Walk; }
+		break;
+	}
+
+	if (Next == CurrentLocoAnim)
+	{
+		return;  // no state change — let the current loop keep playing
+	}
+
+	UAnimSequence* Clip = nullptr;
+	switch (Next)
+	{
+	case ELocoAnim::Idle: Clip = IdleAnim; break;
+	case ELocoAnim::Walk: Clip = WalkAnim ? WalkAnim.Get() : RunAnim.Get(); break;
+	case ELocoAnim::Run:  Clip = RunAnim ? RunAnim.Get() : WalkAnim.Get(); break;
+	}
+	if (!Clip)
+	{
+		Clip = IdleAnim;  // last resort so we never hand PlayAnimation a null clip
+	}
+
+	CurrentLocoAnim = Next;
+	if (Clip)
+	{
+		Mesh->PlayAnimation(Clip, /*bLooping=*/true);
+	}
 }
 
 void AAnimalCharacter::SnapToGround()
